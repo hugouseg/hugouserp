@@ -1,0 +1,61 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Database\Factories;
+
+use App\Models\Branch;
+use App\Models\Product;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+class ProductFactory extends Factory
+{
+    protected $model = Product::class;
+
+    public function definition(): array
+    {
+        return [
+            'name' => fake()->words(3, true),
+            'sku' => fake()->unique()->lexify('SKU-????-####'),
+            'barcode' => fake()->unique()->ean13(),
+            'price' => fake()->randomFloat(2, 10, 1000),
+            'cost' => fake()->randomFloat(2, 5, 500),
+            'quantity' => fake()->numberBetween(0, 100),
+            'min_stock' => fake()->numberBetween(5, 20),
+            'status' => 'active',
+            'type' => 'stock',
+            'branch_id' => Branch::factory(),
+            'created_by' => 1,
+        ];
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => 'inactive',
+        ]);
+    }
+
+    public function outOfStock(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'quantity' => 0,
+        ]);
+    }
+
+    public function lowStock(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'quantity' => fake()->numberBetween(1, 4),
+            'min_stock' => 5,
+        ]);
+    }
+
+    public function service(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'type' => 'service',
+            'quantity' => null,
+        ]);
+    }
+}

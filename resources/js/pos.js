@@ -1,23 +1,62 @@
 // resources/js/pos.js
-// POS front-end logic: product search via API, checkout via API, simple offline skeleton using localStorage.
+/**
+ * POS Terminal Frontend Logic
+ * 
+ * This module handles the Point of Sale (POS) terminal functionality including:
+ * - Product search via API
+ * - Shopping cart management with localStorage persistence
+ * - Checkout process via API
+ * - Offline mode with queue synchronization
+ * 
+ * The POS terminal is designed to work both online and offline, storing transactions
+ * in localStorage when offline and syncing them when connection is restored.
+ * 
+ * @param {Object} options - Configuration options
+ * @param {number} options.branchId - The branch ID for this POS terminal
+ * @returns {Object} Alpine.js component data object
+ */
 
 export function erpPosTerminal(options) {
     const branchId = options.branchId;
 
     return {
+        // ========== State Properties ==========
+        
+        /** @type {number} Current branch ID */
         branchId,
+        
+        /** @type {string} Current search query for products */
         search: '',
+        
+        /** @type {boolean} Whether a product search is in progress */
         isSearching: false,
+        
+        /** @type {Array} List of products matching current search */
         products: [],
+        
+        /** @type {Array} Shopping cart items */
         cart: [],
+        
+        /** @type {boolean} Whether checkout is in progress */
         isCheckingOut: false,
+        
+        /** @type {Object|null} Current user message {type: 'success'|'error'|'info', text: string} */
         message: null,
+        
+        /** @type {boolean} Whether the system is offline */
         offline: !window.navigator.onLine,
 
+        // ========== Lifecycle Methods ==========
+        
+        /**
+         * Initialize the POS terminal
+         * Sets up cart persistence and online/offline event listeners
+         */
         init() {
             this.loadCart();
             this.loadOfflineQueue();
 
+            // Listen for connection status changes
             window.addEventListener('online', () => {
                 this.offline = false;
             });
@@ -27,14 +66,32 @@ export function erpPosTerminal(options) {
             });
         },
 
+        // ========== Storage Keys ==========
+        
+        /**
+         * Get the localStorage key for the cart
+         * Cart data is stored per branch to avoid conflicts
+         * @returns {string} Storage key
+         */
         get storageKey() {
             return `erp_pos_cart_branch_${this.branchId}`;
         },
 
+        /**
+         * Get the localStorage key for the offline queue
+         * Offline sales are queued per branch for later synchronization
+         * @returns {string} Storage key
+         */
         get offlineQueueKey() {
             return `erp_pos_offline_sales_branch_${this.branchId}`;
         },
 
+        // ========== Cart Persistence Methods ==========
+        
+        /**
+         * Load cart from localStorage
+         * Restores the cart state when the page is refreshed
+         */
         loadCart() {
             try {
                 const raw = window.localStorage.getItem(this.storageKey);
@@ -45,6 +102,10 @@ export function erpPosTerminal(options) {
             }
         },
 
+        /**
+         * Persist cart to localStorage
+         * Saves the current cart state for later retrieval
+         */
         persistCart() {
             try {
                 window.localStorage.setItem(this.storageKey, JSON.stringify(this.cart));
