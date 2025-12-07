@@ -292,6 +292,18 @@
         </a>
         @endif
 
+        {{-- Banking Module --}}
+        @if($canAccess('banking.view'))
+        <a href="{{ route('banking.accounts.index') }}"
+           class="sidebar-link bg-gradient-to-r from-sky-500 to-sky-600 {{ $isActive('banking') ? 'active ring-2 ring-white/30' : '' }}">
+            <span class="text-lg">🏦</span>
+            <span class="text-sm font-medium">{{ __('Banking') }}</span>
+            @if($isActive('banking'))
+                <span class="ms-auto w-2 h-2 rounded-full bg-white animate-pulse"></span>
+            @endif
+        </a>
+        @endif
+
         {{-- HR Module --}}
         @if($canAccess('hrm.employees.view'))
         <a href="{{ route('hrm.employees.index') }}"

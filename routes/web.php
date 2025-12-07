@@ -517,6 +517,23 @@ Route::middleware('auth')->group(function () {
             ->name('edit')
             ->middleware('can:fixed-assets.edit');
     });
+
+    // Banking: Bank Accounts & Transactions
+    Route::prefix('banking')->name('banking.')->group(function () {
+        Route::prefix('accounts')->name('accounts.')->group(function () {
+            Route::get('/', \App\Livewire\Banking\Accounts\Index::class)
+                ->name('index')
+                ->middleware('can:banking.view');
+
+            Route::get('/create', \App\Livewire\Banking\Accounts\Form::class)
+                ->name('create')
+                ->middleware('can:banking.create');
+
+            Route::get('/{account}/edit', \App\Livewire\Banking\Accounts\Form::class)
+                ->name('edit')
+                ->middleware('can:banking.edit');
+        });
+    });
 });
 
 // Scheduled reports manager

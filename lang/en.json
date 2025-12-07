@@ -495,5 +495,20 @@
     "Sold": "Sold",
     "Retired": "Retired",
     "No assets found": "No assets found",
-    "Start by creating your first fixed asset": "Start by creating your first fixed asset"
+    "Start by creating your first fixed asset": "Start by creating your first fixed asset",
+    "Manage bank accounts and balances": "Manage bank accounts and balances",
+    "New Account": "New Account",
+    "Create Bank Account": "Create Bank Account",
+    "Edit Bank Account": "Edit Bank Account",
+    "Bank account information": "Bank account information",
+    "Account Type": "Account Type",
+    "Checking": "Checking",
+    "Savings": "Savings",
+    "Credit": "Credit",
+    "All Currencies": "All Currencies",
+    "No bank accounts found": "No bank accounts found",
+    "Update Account": "Update Account",
+    "Create Account": "Create Account",
+    "Inactive": "Inactive",
+    "Closed": "Closed"
 }

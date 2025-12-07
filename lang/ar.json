@@ -468,5 +468,20 @@
     "Sold": "مباع",
     "Retired": "متقاعد",
     "No assets found": "لم يتم العثور على أصول",
-    "Start by creating your first fixed asset": "ابدأ بإنشاء أول أصل ثابت"
+    "Start by creating your first fixed asset": "ابدأ بإنشاء أول أصل ثابت",
+    "Manage bank accounts and balances": "إدارة الحسابات المصرفية والأرصدة",
+    "New Account": "حساب جديد",
+    "Create Bank Account": "إنشاء حساب مصرفي",
+    "Edit Bank Account": "تعديل حساب مصرفي",
+    "Bank account information": "معلومات الحساب المصرفي",
+    "Account Type": "نوع الحساب",
+    "Checking": "جاري",
+    "Savings": "ادخار",
+    "Credit": "ائتمان",
+    "All Currencies": "جميع العملات",
+    "No bank accounts found": "لم يتم العثور على حسابات مصرفية",
+    "Update Account": "تحديث الحساب",
+    "Create Account": "إنشاء حساب",
+    "Inactive": "غير نشط",
+    "Closed": "مغلق"
 }
