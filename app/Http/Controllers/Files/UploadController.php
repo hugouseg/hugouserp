@@ -24,7 +24,6 @@ class UploadController extends Controller
      *
      * Accepts: file, disk?=public, dir?=uploads (auto y/m), visibility?=public|private
      *
-     * @param  Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
