@@ -17,11 +17,20 @@ class JournalEntryLine extends Model
         'debit',
         'credit',
         'description',
+        'dimension1',
+        'dimension2',
+        'currency_id',
+        'exchange_rate',
+        'debit_base',
+        'credit_base',
     ];
 
     protected $casts = [
         'debit' => 'decimal:2',
         'credit' => 'decimal:2',
+        'exchange_rate' => 'decimal:6',
+        'debit_base' => 'decimal:2',
+        'credit_base' => 'decimal:2',
     ];
 
     public function journalEntry(): BelongsTo
@@ -32,5 +41,10 @@ class JournalEntryLine extends Model
     public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class);
+    }
+
+    public function currency(): BelongsTo
+    {
+        return $this->belongsTo(Currency::class);
     }
 }

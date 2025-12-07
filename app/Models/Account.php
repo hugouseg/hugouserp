@@ -18,15 +18,24 @@ class Account extends Model
         'name',
         'name_ar',
         'type',
+        'currency_code',
+        'requires_currency',
+        'account_category',
+        'sub_category',
         'parent_id',
         'balance',
         'is_active',
+        'is_system_account',
         'description',
+        'metadata',
     ];
 
     protected $casts = [
         'balance' => 'decimal:2',
         'is_active' => 'boolean',
+        'requires_currency' => 'boolean',
+        'is_system_account' => 'boolean',
+        'metadata' => 'array',
     ];
 
     public function branch(): BelongsTo
@@ -49,6 +58,16 @@ class Account extends Model
         return $this->hasMany(JournalEntryLine::class, 'account_id');
     }
 
+    public function mappings(): HasMany
+    {
+        return $this->hasMany(AccountMapping::class);
+    }
+
+    public function currency(): BelongsTo
+    {
+        return $this->belongsTo(Currency::class, 'currency_code', 'code');
+    }
+
     public function getLocalizedNameAttribute(): string
     {
         return app()->getLocale() === 'ar' && $this->name_ar ? $this->name_ar : $this->name;
@@ -62,5 +81,35 @@ class Account extends Model
     public function scopeType($query, string $type)
     {
         return $query->where('type', $type);
+    }
+
+    public function scopeCategory($query, string $category)
+    {
+        return $query->where('account_category', $category);
+    }
+
+    public function isAsset(): bool
+    {
+        return $this->type === 'asset';
+    }
+
+    public function isLiability(): bool
+    {
+        return $this->type === 'liability';
+    }
+
+    public function isEquity(): bool
+    {
+        return $this->type === 'equity';
+    }
+
+    public function isRevenue(): bool
+    {
+        return $this->type === 'revenue';
+    }
+
+    public function isExpense(): bool
+    {
+        return $this->type === 'expense';
     }
 }

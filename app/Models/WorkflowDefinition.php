@@ -1,0 +1,100 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class WorkflowDefinition extends Model
+{
+    protected $fillable = [
+        'name',
+        'code',
+        'module_name',
+        'entity_type',
+        'description',
+        'stages',
+        'rules',
+        'is_active',
+        'is_mandatory',
+    ];
+
+    protected $casts = [
+        'stages' => 'array',
+        'rules' => 'array',
+        'is_active' => 'boolean',
+        'is_mandatory' => 'boolean',
+    ];
+
+    public function instances(): HasMany
+    {
+        return $this->hasMany(WorkflowInstance::class);
+    }
+
+    public function workflowRules(): HasMany
+    {
+        return $this->hasMany(WorkflowRule::class);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeForModule($query, string $moduleName)
+    {
+        return $query->where('module_name', $moduleName);
+    }
+
+    public function scopeForEntity($query, string $entityType)
+    {
+        return $query->where('entity_type', $entityType);
+    }
+
+    /**
+     * Get ordered stages
+     */
+    public function getOrderedStages(): array
+    {
+        $stages = $this->stages ?? [];
+        usort($stages, fn($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
+        return $stages;
+    }
+
+    /**
+     * Get stage by name
+     */
+    public function getStage(string $stageName): ?array
+    {
+        foreach ($this->stages ?? [] as $stage) {
+            if ($stage['name'] === $stageName) {
+                return $stage;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get next stage
+     */
+    public function getNextStage(string $currentStageName): ?array
+    {
+        $stages = $this->getOrderedStages();
+        $currentStageIndex = null;
+
+        foreach ($stages as $index => $stage) {
+            if ($stage['name'] === $currentStageName) {
+                $currentStageIndex = $index;
+                break;
+            }
+        }
+
+        if ($currentStageIndex !== null && isset($stages[$currentStageIndex + 1])) {
+            return $stages[$currentStageIndex + 1];
+        }
+
+        return null;
+    }
+}
