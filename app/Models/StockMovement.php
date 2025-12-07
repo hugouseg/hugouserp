@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Str;
 
 class StockMovement extends BaseModel
@@ -40,33 +42,35 @@ class StockMovement extends BaseModel
         });
     }
 
-    public function branch()
+    public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
     }
 
-    public function warehouse()
+    public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
     }
 
-    public function product()
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
-    // Polymorphic source document: PurchaseItem, SaleItem, AdjustmentItem, TransferItem, etc.
-    public function source()
+    /**
+     * Polymorphic source document: PurchaseItem, SaleItem, AdjustmentItem, TransferItem, etc.
+     */
+    public function source(): MorphTo
     {
         return $this->morphTo(__FUNCTION__, 'reference_type', 'reference_id');
     }
 
-    public function createdBy()
+    public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function updatedBy()
+    public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
     }

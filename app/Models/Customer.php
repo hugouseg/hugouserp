@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
 class Customer extends BaseModel
 {
     protected ?string $moduleKey = 'customers';
@@ -23,22 +26,22 @@ class Customer extends BaseModel
         'phone' => 'encrypted',
     ];
 
-    public function branch()
+    public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
     }
 
-    public function priceGroup()
+    public function priceGroup(): BelongsTo
     {
         return $this->belongsTo(PriceGroup::class, 'price_group_id');
     }
 
-    public function sales()
+    public function sales(): HasMany
     {
         return $this->hasMany(Sale::class);
     }
 
-    public function vehicleContracts()
+    public function vehicleContracts(): HasMany
     {
         return $this->hasMany(VehicleContract::class);
     }

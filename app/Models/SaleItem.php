@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 class SaleItem extends BaseModel
 {
     protected ?string $moduleKey = 'sales';
@@ -25,17 +27,17 @@ class SaleItem extends BaseModel
         'extra_attributes' => 'array',
     ];
 
-    public function sale()
+    public function sale(): BelongsTo
     {
         return $this->belongsTo(Sale::class);
     }
 
-    public function product()
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
-    public function tax()
+    public function tax(): BelongsTo
     {
         return $this->belongsTo(Tax::class, 'tax_id');
     }

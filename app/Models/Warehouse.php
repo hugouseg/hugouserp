@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Str;
 
 class Warehouse extends BaseModel
@@ -29,37 +32,37 @@ class Warehouse extends BaseModel
         });
     }
 
-    public function branch()
+    public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
     }
 
-    public function stockMovements()
+    public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);
     }
 
-    public function products()
+    public function products(): HasManyThrough
     {
         return $this->hasManyThrough(Product::class, StockMovement::class, 'warehouse_id', 'id', 'id', 'product_id')->distinct();
     }
 
-    public function transfersFrom()
+    public function transfersFrom(): HasMany
     {
         return $this->hasMany(Transfer::class, 'from_warehouse_id');
     }
 
-    public function transfersTo()
+    public function transfersTo(): HasMany
     {
         return $this->hasMany(Transfer::class, 'to_warehouse_id');
     }
 
-    public function createdBy()
+    public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function updatedBy()
+    public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
     }

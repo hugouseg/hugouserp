@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 class PurchaseItem extends BaseModel
 {
     protected ?string $moduleKey = 'purchases';
@@ -25,17 +27,17 @@ class PurchaseItem extends BaseModel
         'extra_attributes' => 'array',
     ];
 
-    public function purchase()
+    public function purchase(): BelongsTo
     {
         return $this->belongsTo(Purchase::class);
     }
 
-    public function product()
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
-    public function tax()
+    public function tax(): BelongsTo
     {
         return $this->belongsTo(Tax::class, 'tax_id');
     }
