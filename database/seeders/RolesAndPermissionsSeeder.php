@@ -63,6 +63,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'manufacturing.update',
             'manufacturing.delete',
             'manufacturing.approve',
+            'fixed-assets.create',
+            'fixed-assets.update',
+            'fixed-assets.delete',
+            'fixed-assets.depreciate',
         ];
 
         foreach ($apiPermissions as $name) {
@@ -147,6 +151,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'manufacturing.edit',
             'manufacturing.delete',
             'manufacturing.approve',
+            'fixed-assets.view',
+            'fixed-assets.create',
+            'fixed-assets.edit',
+            'fixed-assets.delete',
+            'fixed-assets.depreciate',
         ];
 
         foreach ($webPermissions as $name) {
