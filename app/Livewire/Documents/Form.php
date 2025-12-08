@@ -1,0 +1,112 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Livewire\Documents;
+
+use App\Http\Requests\DocumentStoreRequest;
+use App\Http\Requests\DocumentUpdateRequest;
+use App\Models\Document;
+use App\Models\DocumentTag;
+use App\Services\DocumentService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
+use Livewire\WithFileUploads;
+
+#[Layout('layouts.app')]
+class Form extends Component
+{
+    use AuthorizesRequests;
+    use WithFileUploads;
+
+    public ?Document $document = null;
+    public bool $isEdit = false;
+
+    public string $title = '';
+    public string $description = '';
+    public $file = null;
+    public string $folder = '';
+    public string $category = '';
+    public bool $is_public = false;
+    public array $selectedTags = [];
+
+    protected DocumentService $documentService;
+
+    public function boot(DocumentService $documentService): void
+    {
+        $this->documentService = $documentService;
+    }
+
+    public function mount(?Document $document = null): void
+    {
+        if ($document && $document->exists) {
+            $this->authorize('documents.edit');
+            $this->isEdit = true;
+            $this->document = $document;
+            $this->fill($document->only([
+                'title',
+                'description',
+                'folder',
+                'category',
+                'is_public',
+            ]));
+            $this->selectedTags = $document->tags->pluck('id')->toArray();
+        } else {
+            $this->authorize('documents.create');
+        }
+    }
+
+    public function save(): void
+    {
+        if ($this->isEdit) {
+            $this->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'folder' => 'nullable|string|max:255',
+                'category' => 'nullable|string|max:100',
+            ]);
+
+            $this->document = $this->documentService->updateDocument($this->document, [
+                'title' => $this->title,
+                'description' => $this->description,
+                'folder' => $this->folder,
+                'category' => $this->category,
+                'is_public' => $this->is_public,
+                'tags' => $this->selectedTags,
+            ]);
+
+            session()->flash('success', __('Document updated successfully'));
+        } else {
+            $this->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'file' => 'required|file|max:51200',
+                'folder' => 'nullable|string|max:255',
+                'category' => 'nullable|string|max:100',
+            ]);
+
+            $this->document = $this->documentService->uploadDocument($this->file, [
+                'title' => $this->title,
+                'description' => $this->description,
+                'folder' => $this->folder,
+                'category' => $this->category,
+                'is_public' => $this->is_public,
+                'tags' => $this->selectedTags,
+            ]);
+
+            session()->flash('success', __('Document uploaded successfully'));
+        }
+
+        return redirect()->route('documents.show', $this->document->id);
+    }
+
+    public function render()
+    {
+        $tags = DocumentTag::all();
+
+        return view('livewire.documents.form', [
+            'tags' => $tags,
+        ]);
+    }
+}

@@ -634,6 +634,34 @@ Route::middleware('auth')->group(function () {
             ->name('expenses')
             ->middleware('can:projects.expenses.view');
     });
+
+    // Documents Routes
+    Route::prefix('documents')->name('documents.')->group(function () {
+        Route::get('/', \App\Livewire\Documents\Index::class)
+            ->name('index')
+            ->middleware('can:documents.view');
+        
+        Route::get('/create', \App\Livewire\Documents\Form::class)
+            ->name('create')
+            ->middleware('can:documents.create');
+        
+        Route::get('/{document}', \App\Livewire\Documents\Show::class)
+            ->name('show')
+            ->middleware('can:documents.view');
+        
+        Route::get('/{document}/edit', \App\Livewire\Documents\Form::class)
+            ->name('edit')
+            ->middleware('can:documents.edit');
+        
+        Route::get('/{document}/versions', \App\Livewire\Documents\Versions::class)
+            ->name('versions')
+            ->middleware('can:documents.versions.view');
+        
+        // Tags
+        Route::get('/settings/tags', \App\Livewire\Documents\Tags\Index::class)
+            ->name('tags.index')
+            ->middleware('can:documents.tags.manage');
+    });
 });
 
 // Scheduled reports manager
