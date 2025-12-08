@@ -12,19 +12,24 @@ use App\Services\ModuleProductService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class Form extends Component
 {
     use AuthorizesRequests;
     use HandlesErrors;
+    use WithFileUploads;
 
     public ?int $productId = null;
 
     public ?int $selectedModuleId = null;
+
+    public $thumbnailFile;
 
     public array $form = [
         'name' => '',
@@ -81,6 +86,7 @@ class Form extends Component
             $this->form['type'] = (string) ($p->type ?? 'stock');
             $this->form['branch_id'] = (int) ($p->branch_id ?? $this->form['branch_id']);
             $this->form['module_id'] = $p->module_id;
+            $this->form['thumbnail'] = $p->thumbnail ?? '';
             $this->selectedModuleId = $p->module_id;
 
             if ($p->module_id) {
@@ -192,6 +198,7 @@ class Form extends Component
             'form.type' => ['required', 'string', Rule::in(['stock', 'service'])],
             'form.branch_id' => ['required', 'integer'],
             'form.module_id' => ['nullable', 'integer', 'exists:modules,id'],
+            'thumbnailFile' => ['nullable', 'image', 'max:2048'],
         ];
 
         foreach ($this->dynamicSchema as $field) {
@@ -242,6 +249,15 @@ class Form extends Component
             $product->branch_id = $this->form['branch_id'];
             $product->module_id = $this->form['module_id'];
             $product->extra_attributes = $this->dynamicData;
+
+            // Handle thumbnail upload
+            if ($this->thumbnailFile) {
+                // Delete old thumbnail if exists
+                if ($product->thumbnail) {
+                    Storage::delete($product->thumbnail);
+                }
+                $product->thumbnail = $this->thumbnailFile->store('products/thumbnails', 'public');
+            }
 
             if (Auth::check()) {
                 $userId = Auth::id();

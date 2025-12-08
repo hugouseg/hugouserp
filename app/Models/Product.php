@@ -19,6 +19,7 @@ class Product extends BaseModel
 
     protected $fillable = [
         'uuid', 'code', 'name', 'sku', 'barcode',
+        'thumbnail', 'image', 'gallery',
         'module_id',
         'product_type',
         'type',
@@ -57,6 +58,7 @@ class Product extends BaseModel
         'extra_attributes' => 'array',
         'variation_attributes' => 'array',
         'custom_fields' => 'array',
+        'gallery' => 'array',
     ];
 
     protected static function booted(): void
@@ -269,5 +271,10 @@ class Product extends BaseModel
     public function isService(): bool
     {
         return $this->product_type === 'service' || $this->type === 'service' || $this->module?->is_service;
+    }
+
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        return $this->thumbnail ? \Illuminate\Support\Facades\Storage::url($this->thumbnail) : null;
     }
 }
