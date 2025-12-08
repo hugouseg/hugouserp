@@ -49,6 +49,26 @@ if (! function_exists('percent')) {
     }
 }
 
+if (! function_exists('setting')) {
+    /**
+     * Get or set a system setting value.
+     *
+     * @param  string  $key  Setting key (e.g., 'pos.max_discount_percent', 'inventory.default_costing_method')
+     * @param  mixed  $default  Default value if setting doesn't exist
+     * @return mixed
+     */
+    function setting(string $key, mixed $default = null): mixed
+    {
+        static $settingsService = null;
+
+        if ($settingsService === null) {
+            $settingsService = app(\App\Services\SettingsService::class);
+        }
+
+        return $settingsService->get($key, $default);
+    }
+}
+
 if (! function_exists('sanitize_svg_icon')) {
     /**
      * Sanitize SVG icon content using a strict allow-list approach.
