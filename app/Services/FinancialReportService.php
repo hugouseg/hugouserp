@@ -30,7 +30,7 @@ class FinancialReportService
         $totalCredit = 0;
 
         foreach ($accounts as $account) {
-            $balance = $this->getAccountBalance($account->id, $startDate, $endDate);
+            $balance = $this->getAccountBalance($account, $startDate, $endDate);
 
             if (abs($balance) < 0.01) {
                 continue; // Skip zero balance accounts
@@ -106,7 +106,7 @@ class FinancialReportService
         $totalRevenue = 0;
 
         foreach ($revenueAccounts as $account) {
-            $balance = $this->getAccountBalance($account->id, $startDate, $endDate);
+            $balance = $this->getAccountBalance($account, $startDate, $endDate);
             if (abs($balance) > 0.01) {
                 $revenue[] = [
                     'account_number' => $account->account_number,
@@ -121,7 +121,7 @@ class FinancialReportService
         $totalExpenses = 0;
 
         foreach ($expenseAccounts as $account) {
-            $balance = $this->getAccountBalance($account->id, $startDate, $endDate);
+            $balance = $this->getAccountBalance($account, $startDate, $endDate);
             if (abs($balance) > 0.01) {
                 $expenses[] = [
                     'account_number' => $account->account_number,
@@ -179,7 +179,7 @@ class FinancialReportService
         $totalAssets = 0;
 
         foreach ($assetAccounts as $account) {
-            $balance = $this->getAccountBalance($account->id, null, $asOfDate);
+            $balance = $this->getAccountBalance($account, null, $asOfDate);
             if (abs($balance) > 0.01) {
                 $assets[] = [
                     'account_number' => $account->account_number,
@@ -195,7 +195,7 @@ class FinancialReportService
         $totalLiabilities = 0;
 
         foreach ($liabilityAccounts as $account) {
-            $balance = $this->getAccountBalance($account->id, null, $asOfDate);
+            $balance = $this->getAccountBalance($account, null, $asOfDate);
             if (abs($balance) > 0.01) {
                 $liabilities[] = [
                     'account_number' => $account->account_number,
@@ -211,7 +211,7 @@ class FinancialReportService
         $totalEquity = 0;
 
         foreach ($equityAccounts as $account) {
-            $balance = $this->getAccountBalance($account->id, null, $asOfDate);
+            $balance = $this->getAccountBalance($account, null, $asOfDate);
             if (abs($balance) > 0.01) {
                 $equity[] = [
                     'account_number' => $account->account_number,
@@ -273,8 +273,9 @@ class FinancialReportService
         foreach ($sales as $sale) {
             // Calculate days from sale date (or due date if available)
             $referenceDate = $sale->due_date ?? $sale->sale_date;
-            $daysOverdue = now()->diffInDays($referenceDate, false);
-            $outstandingAmount = $sale->grand_total - ($sale->paid_amount ?? 0);
+            $asOf = \Carbon\Carbon::parse($asOfDate);
+            $daysOverdue = $asOf->diffInDays($referenceDate, false);
+            $outstandingAmount = $sale->grand_total - ($sale->paid_total ?? 0);
 
             if ($outstandingAmount <= 0) {
                 continue;
@@ -328,8 +329,9 @@ class FinancialReportService
         foreach ($purchases as $purchase) {
             // Calculate days from purchase date (or due date if available)
             $referenceDate = $purchase->due_date ?? $purchase->purchase_date;
-            $daysOverdue = now()->diffInDays($referenceDate, false);
-            $outstandingAmount = $purchase->grand_total - ($purchase->paid_amount ?? 0);
+            $asOf = \Carbon\Carbon::parse($asOfDate);
+            $daysOverdue = $asOf->diffInDays($referenceDate, false);
+            $outstandingAmount = $purchase->grand_total - ($purchase->paid_total ?? 0);
 
             if ($outstandingAmount <= 0) {
                 continue;
@@ -440,9 +442,14 @@ class FinancialReportService
     /**
      * Get account balance for a period
      */
-    protected function getAccountBalance(int $accountId, ?string $startDate = null, ?string $endDate = null): float
+    protected function getAccountBalance(Account|int $account, ?string $startDate = null, ?string $endDate = null): float
     {
-        $query = JournalEntryLine::where('account_id', $accountId)
+        // If int passed, fetch the account
+        if (is_int($account)) {
+            $account = Account::findOrFail($account);
+        }
+
+        $query = JournalEntryLine::where('account_id', $account->id)
             ->whereHas('journalEntry', function ($q) use ($startDate, $endDate) {
                 $q->where('status', 'posted');
 
@@ -458,7 +465,13 @@ class FinancialReportService
         $totalDebit = (float) $query->sum('debit');
         $totalCredit = (float) $query->sum('credit');
 
-        return $totalDebit - $totalCredit;
+        // Asset and Expense accounts have natural debit balance
+        if (in_array($account->type, ['asset', 'expense'])) {
+            return $totalDebit - $totalCredit;
+        }
+
+        // Liability, Equity, Revenue accounts have natural credit balance
+        return $totalCredit - $totalDebit;
     }
 
     /**

@@ -66,6 +66,12 @@ class InventoryService implements InventoryServiceInterface
                     throw new InvalidQuantityException('Branch context is required for inventory adjustments.', 422);
                 }
 
+                // Check if product is a service type
+                $product = Product::findOrFail($productId);
+                if ($product->type === 'service' || $product->product_type === 'service') {
+                    throw new InvalidQuantityException('Cannot adjust stock for service products.', 422);
+                }
+
                 if (abs($qty) < 1e-9) {
                     throw new InvalidQuantityException('Qty cannot be zero.', 422);
                 }
@@ -141,6 +147,12 @@ class InventoryService implements InventoryServiceInterface
 
                 if ($branchId === null) {
                     throw new InvalidQuantityException('Branch context is required for inventory transfers.', 422);
+                }
+
+                // Check if product is a service type
+                $product = Product::findOrFail($productId);
+                if ($product->type === 'service' || $product->product_type === 'service') {
+                    throw new InvalidQuantityException('Cannot transfer stock for service products.', 422);
                 }
 
                 if ($fromWarehouse === $toWarehouse) {

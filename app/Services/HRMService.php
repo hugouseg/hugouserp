@@ -35,7 +35,8 @@ class HRMService implements HRMServiceInterface
                 $this->validator->make(['type' => $type], ['type' => 'required|in:in,out'])->validate();
                 $ts = Carbon::parse($at);
                 $date = $ts->toDateString();
-                $branchId = HREmployee::find($employeeId)?->branch_id ?? 1;
+                $employee = HREmployee::findOrFail($employeeId);
+                $branchId = $employee->branch_id;
 
                 $attendance = Attendance::firstOrNew([
                     'employee_id' => $employeeId,
@@ -131,8 +132,8 @@ class HRMService implements HRMServiceInterface
 
     protected function calculateSocialInsurance(float $grossSalary): float
     {
-        $rate = 0.14;
-        $maxSalary = 12600;
+        $rate = config('hrm.social_insurance.rate', 0.14);
+        $maxSalary = config('hrm.social_insurance.max_salary', 12600);
 
         $insurableSalary = min($grossSalary, $maxSalary);
 
@@ -144,14 +145,14 @@ class HRMService implements HRMServiceInterface
         $annualIncome = $taxableIncome * 12;
         $annualTax = 0;
 
-        $brackets = [
+        $brackets = config('hrm.tax_brackets', [
             ['limit' => 40000, 'rate' => 0],
             ['limit' => 55000, 'rate' => 0.10],
             ['limit' => 70000, 'rate' => 0.15],
             ['limit' => 200000, 'rate' => 0.20],
             ['limit' => 400000, 'rate' => 0.225],
             ['limit' => PHP_FLOAT_MAX, 'rate' => 0.25],
-        ];
+        ]);
 
         $previousLimit = 0;
         foreach ($brackets as $bracket) {

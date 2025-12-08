@@ -17,17 +17,17 @@ class RentalService implements RentalServiceInterface
 {
     use HandlesServiceErrors;
 
-    public function createProperty(array $payload): Property
+    public function createProperty(int $branchId, array $payload): Property
     {
         return $this->handleServiceOperation(
             callback: fn () => Property::create([
-                'branch_id' => request()->attributes->get('branch_id'),
+                'branch_id' => $branchId,
                 'name' => $payload['name'],
                 'address' => $payload['address'] ?? null,
                 'notes' => $payload['notes'] ?? null,
             ]),
             operation: 'createProperty',
-            context: ['payload' => $payload]
+            context: ['branch_id' => $branchId, 'payload' => $payload]
         );
     }
 
@@ -153,11 +153,24 @@ class RentalService implements RentalServiceInterface
         );
     }
 
-    public function collectPayment(int $invoiceId, float $amount): RentalInvoice
+    public function collectPayment(int $invoiceId, float $amount, ?string $method = 'cash', ?string $reference = null): RentalInvoice
     {
         return $this->handleServiceOperation(
-            callback: function () use ($invoiceId, $amount) {
+            callback: function () use ($invoiceId, $amount, $method, $reference) {
                 $i = RentalInvoice::findOrFail($invoiceId);
+
+                // Create payment record
+                \App\Models\RentalPayment::create([
+                    'invoice_id' => $i->id,
+                    'contract_id' => $i->contract_id,
+                    'branch_id' => $i->contract->branch_id ?? null,
+                    'amount' => $amount,
+                    'method' => $method,
+                    'reference' => $reference,
+                    'paid_at' => now(),
+                    'created_by' => auth()->id(),
+                ]);
+
                 $i->paid_total = round(($i->paid_total ?? 0) + $amount, 2);
                 $i->status = $i->paid_total >= $i->amount ? 'paid' : 'unpaid';
                 $i->save();
@@ -165,7 +178,7 @@ class RentalService implements RentalServiceInterface
                 return $i;
             },
             operation: 'collectPayment',
-            context: ['invoice_id' => $invoiceId, 'amount' => $amount]
+            context: ['invoice_id' => $invoiceId, 'amount' => $amount, 'method' => $method]
         );
     }
 

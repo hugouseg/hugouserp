@@ -25,8 +25,9 @@ class PropertyController extends Controller
     public function store(PropertyStoreRequest $request)
     {
         $data = $request->validated();
+        $branchId = (int) $request->attributes->get('branch_id');
 
-        return $this->ok($this->rental->createProperty($data), __('Created'), 201);
+        return $this->ok($this->rental->createProperty($branchId, $data), __('Created'), 201);
     }
 
     public function show(Property $property)

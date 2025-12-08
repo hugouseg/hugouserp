@@ -36,7 +36,15 @@ class InvoiceController extends Controller
     {
         $data = $request->validated();
 
-        return $this->ok($this->rental->collectPayment($invoice->id, (float) $data['amount']), __('Collected'));
+        return $this->ok(
+            $this->rental->collectPayment(
+                $invoice->id,
+                (float) $data['amount'],
+                $data['method'] ?? 'cash',
+                $data['reference'] ?? null
+            ),
+            __('Collected')
+        );
     }
 
     public function applyPenalty(InvoicePenaltyRequest $request, RentalInvoice $invoice)

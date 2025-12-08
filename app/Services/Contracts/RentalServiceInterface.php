@@ -12,7 +12,7 @@ use App\Models\Tenant;
 
 interface RentalServiceInterface
 {
-    public function createProperty(array $payload): Property;
+    public function createProperty(int $branchId, array $payload): Property;
 
     public function createUnit(int $propertyId, array $payload): RentalUnit;
 
@@ -30,7 +30,7 @@ interface RentalServiceInterface
 
     public function runRecurring(?string $forDate = null): int;
 
-    public function collectPayment(int $invoiceId, float $amount): RentalInvoice;
+    public function collectPayment(int $invoiceId, float $amount, ?string $method = 'cash', ?string $reference = null): RentalInvoice;
 
     public function applyPenalty(int $invoiceId, float $penalty): RentalInvoice;
 }

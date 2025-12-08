@@ -34,6 +34,18 @@ class POSService implements POSServiceInterface
                 $user = auth()->user();
                 $branchId = $payload['branch_id'] ?? request()->attributes->get('branch_id');
 
+                // Validate POS session exists and is open
+                if (($payload['channel'] ?? 'pos') === 'pos') {
+                    $activeSession = PosSession::where('branch_id', $branchId)
+                        ->where('user_id', $user?->id)
+                        ->where('status', PosSession::STATUS_OPEN)
+                        ->first();
+
+                    if (! $activeSession && config('pos.require_session', true)) {
+                        abort(422, __('No active POS session. Please open a session first.'));
+                    }
+                }
+
                 $sale = Sale::create([
                     'branch_id' => $branchId,
                     'warehouse_id' => $payload['warehouse_id'] ?? null,
