@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Exceptions\InvalidQuantityException;
 use App\Models\Product;
+use App\Models\StockMovement;
 use App\Models\Warehouse;
 use App\Repositories\Contracts\StockLevelRepositoryInterface;
 use App\Repositories\Contracts\StockMovementRepositoryInterface;
@@ -55,16 +56,10 @@ class InventoryService implements InventoryServiceInterface
         );
     }
 
-    public function adjust(
-        int $productId,
-        int $warehouseId,
-        float $qty,
-        string $direction,
-        ?string $reason = null,
-        ?array $meta = null,
-    ): void {
-        $this->handleServiceOperation(
-            callback: function () use ($productId, $warehouseId, $qty, $direction, $reason, $meta) {
+    public function adjust(int $productId, float $qty, ?int $warehouseId = null, ?string $note = null): StockMovement
+    {
+        return $this->handleServiceOperation(
+            callback: function () use ($productId, $qty, $warehouseId, $note) {
                 $branchId = $this->currentBranchId();
 
                 if ($branchId === null) {
@@ -75,29 +70,27 @@ class InventoryService implements InventoryServiceInterface
                     throw new InvalidQuantityException('Qty cannot be zero.', 422);
                 }
 
-                if (! in_array($direction, ['in', 'out'], true)) {
-                    throw new InvalidQuantityException('Invalid movement direction.', 422);
-                }
+                $direction = $qty > 0 ? 'in' : 'out';
 
                 $data = [
                     'product_id' => $productId,
                     'warehouse_id' => $warehouseId,
-                    'qty' => $qty,
+                    'qty' => abs($qty),
                     'direction' => $direction,
-                    'reason' => $reason,
-                    'meta' => $meta ?? [],
+                    'reason' => $note,
+                    'meta' => [],
                 ];
 
                 $validator = $this->validator->make($data, [
                     'product_id' => ['required', 'integer', 'exists:products,id'],
-                    'warehouse_id' => ['required', 'integer', 'exists:warehouses,id'],
+                    'warehouse_id' => ['nullable', 'integer', 'exists:warehouses,id'],
                     'qty' => ['required', 'numeric'],
                     'direction' => ['required', 'in:in,out'],
                 ]);
 
                 $validator->validate();
 
-                DB::transaction(function () use ($branchId, $data): void {
+                return DB::transaction(function () use ($branchId, $data) {
                     $product = Product::query()
                         ->where('branch_id', $branchId)
                         ->lockForUpdate()
@@ -126,15 +119,8 @@ class InventoryService implements InventoryServiceInterface
                         'created_by' => $this->currentUser()?->getAuthIdentifier(),
                     ];
 
-                    $this->movements->create($movementData);
+                    return $this->movements->create($movementData);
                 });
-
-                $this->logServiceInfo('adjust', 'Inventory adjusted', [
-                    'product_id' => $productId,
-                    'warehouse_id' => $warehouseId,
-                    'qty' => $qty,
-                    'direction' => $direction,
-                ]);
             },
             operation: 'adjust',
             context: [
@@ -147,22 +133,17 @@ class InventoryService implements InventoryServiceInterface
         );
     }
 
-    public function transfer(
-        int $productId,
-        int $fromWarehouseId,
-        int $toWarehouseId,
-        float $qty,
-        ?string $reason = null,
-    ): void {
-        $this->handleServiceOperation(
-            callback: function () use ($productId, $fromWarehouseId, $toWarehouseId, $qty, $reason) {
+    public function transfer(int $productId, float $qty, int $fromWarehouse, int $toWarehouse): array
+    {
+        return $this->handleServiceOperation(
+            callback: function () use ($productId, $qty, $fromWarehouse, $toWarehouse) {
                 $branchId = $this->currentBranchId();
 
                 if ($branchId === null) {
                     throw new InvalidQuantityException('Branch context is required for inventory transfers.', 422);
                 }
 
-                if ($fromWarehouseId === $toWarehouseId) {
+                if ($fromWarehouse === $toWarehouse) {
                     throw new InvalidQuantityException('Source and destination warehouses must be different.', 422);
                 }
 
@@ -170,69 +151,63 @@ class InventoryService implements InventoryServiceInterface
                     throw new InvalidQuantityException('Qty must be positive for transfer.', 422);
                 }
 
-                DB::transaction(function () use ($branchId, $productId, $fromWarehouseId, $toWarehouseId, $qty, $reason): void {
+                return DB::transaction(function () use ($branchId, $productId, $fromWarehouse, $toWarehouse, $qty) {
                     $product = Product::query()
                         ->where('branch_id', $branchId)
                         ->lockForUpdate()
                         ->findOrFail($productId);
 
-                    $fromWarehouse = Warehouse::query()
+                    $fromWh = Warehouse::query()
                         ->where('branch_id', $branchId)
                         ->lockForUpdate()
-                        ->findOrFail($fromWarehouseId);
+                        ->findOrFail($fromWarehouse);
 
-                    $toWarehouse = Warehouse::query()
+                    $toWh = Warehouse::query()
                         ->where('branch_id', $branchId)
                         ->lockForUpdate()
-                        ->findOrFail($toWarehouseId);
+                        ->findOrFail($toWarehouse);
 
                     $userId = $this->currentUser()?->getAuthIdentifier();
 
-                    $this->movements->create([
+                    $outMovement = $this->movements->create([
                         'branch_id' => $branchId,
                         'product_id' => $product->getKey(),
-                        'warehouse_id' => $fromWarehouse->getKey(),
+                        'warehouse_id' => $fromWh->getKey(),
                         'qty' => $qty,
                         'direction' => 'out',
-                        'reason' => $reason ?? 'transfer',
+                        'reason' => 'transfer',
                         'meta' => [
                             'type' => 'transfer',
                             'direction_label' => 'from',
-                            'to_warehouse_id' => $toWarehouse->getKey(),
+                            'to_warehouse_id' => $toWh->getKey(),
                         ],
                         'created_by' => $userId,
                     ]);
 
-                    $this->movements->create([
+                    $inMovement = $this->movements->create([
                         'branch_id' => $branchId,
                         'product_id' => $product->getKey(),
-                        'warehouse_id' => $toWarehouse->getKey(),
+                        'warehouse_id' => $toWh->getKey(),
                         'qty' => $qty,
                         'direction' => 'in',
-                        'reason' => $reason ?? 'transfer',
+                        'reason' => 'transfer',
                         'meta' => [
                             'type' => 'transfer',
                             'direction_label' => 'to',
-                            'from_warehouse_id' => $fromWarehouse->getKey(),
+                            'from_warehouse_id' => $fromWh->getKey(),
                         ],
                         'created_by' => $userId,
                     ]);
-                });
 
-                $this->logServiceInfo('transfer', 'Inventory transferred', [
-                    'product_id' => $productId,
-                    'from_warehouse_id' => $fromWarehouseId,
-                    'to_warehouse_id' => $toWarehouseId,
-                    'qty' => $qty,
-                ]);
+                    return [$outMovement, $inMovement];
+                });
             },
             operation: 'transfer',
             context: [
                 'product_id' => $productId,
-                'from_warehouse_id' => $fromWarehouseId,
-                'to_warehouse_id' => $toWarehouseId,
+                'from_warehouse_id' => $fromWarehouse,
+                'to_warehouse_id' => $toWarehouse,
                 'qty' => $qty,
-                'reason' => $reason,
             ]
         );
     }

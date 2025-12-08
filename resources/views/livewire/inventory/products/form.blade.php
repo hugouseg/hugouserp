@@ -12,26 +12,35 @@
     </div>
 
     <form wire:submit.prevent="save" class="space-y-6">
-        {{-- Module Selection --}}
+        {{-- Module Selection - Required for New Products --}}
         <div class="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/50 to-white p-4 shadow-sm">
             <h2 class="text-sm font-semibold text-emerald-800 mb-3 flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                 </svg>
                 {{ __('Module Selection') }}
+                @if(!$productId)
+                    <span class="text-red-500 text-xs">*{{ __('Required') }}</span>
+                @endif
             </h2>
             <div class="space-y-1">
                 <label class="block text-sm font-medium text-slate-700">
                     {{ __('Product Module') }}
-                    <span class="text-slate-400 text-xs">({{ __('Optional - Select for module-specific fields') }})</span>
+                    @if(!$productId)
+                        <span class="text-red-500">*</span>
+                    @endif
                 </label>
-                <select wire:model.live="selectedModuleId" class="erp-input">
-                    <option value="">{{ __('No specific module (General Product)') }}</option>
+                <select wire:model.live="selectedModuleId" class="erp-input" {{ !$productId ? 'required' : '' }}>
+                    <option value="">{{ __('Select a module that supports items...') }}</option>
                     @foreach($modules as $module)
                         <option value="{{ $module->id }}">
                             {{ $module->name }}
                             @if($module->is_service)
                                 ({{ __('Service') }})
+                            @elseif($module->is_rental)
+                                ({{ __('Rental') }})
+                            @else
+                                ({{ __('Stock Item') }})
                             @endif
                         </option>
                     @endforeach
@@ -39,9 +48,18 @@
                 @error('form.module_id')
                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                 @enderror
-                <p class="text-xs text-slate-500 mt-1">
-                    {{ __('Select a module to display its specific custom fields (e.g., Wood dimensions, Vehicle specs, etc.)') }}
-                </p>
+                
+                @if(!$productId)
+                    <div class="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                        <p class="text-xs text-blue-800">
+                            <strong>{{ __('Note') }}:</strong> {{ __('Only modules that support items/products are shown. The selected module will determine available custom fields and behavior.') }}
+                        </p>
+                    </div>
+                @else
+                    <p class="text-xs text-slate-500 mt-1">
+                        {{ __('Module-specific custom fields are loaded based on selection') }}
+                    </p>
+                @endif
             </div>
         </div>
 
@@ -160,6 +178,62 @@
                     @error('form.status')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
+                </div>
+            </div>
+        </div>
+
+        {{-- Product Image Section --}}
+        <div class="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm shadow-emerald-500/10">
+            <h2 class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                {{ __('Product Image') }}
+            </h2>
+            <div class="space-y-3">
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-slate-700">
+                        {{ __('Thumbnail') }}
+                    </label>
+                    <input type="file" wire:model="thumbnailFile" accept="image/*" class="erp-input">
+                    @error('thumbnailFile')
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    @enderror
+                    <p class="text-xs text-slate-500">{{ __('Max size: 2MB. Formats: JPG, PNG, GIF') }}</p>
+                </div>
+
+                {{-- Image Preview --}}
+                @if ($thumbnailFile)
+                    <div class="mt-3">
+                        <p class="text-xs font-medium text-slate-700 mb-2">{{ __('Preview') }}:</p>
+                        <div class="relative inline-block">
+                            <img src="{{ $thumbnailFile->temporaryUrl() }}" 
+                                 class="h-32 w-32 object-cover rounded-lg border-2 border-emerald-200 shadow-md"
+                                 alt="{{ __('Preview') }}">
+                            <button type="button" 
+                                    wire:click="$set('thumbnailFile', null)"
+                                    class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                @elseif ($productId && !empty($form['thumbnail']))
+                    <div class="mt-3">
+                        <p class="text-xs font-medium text-slate-700 mb-2">{{ __('Current Image') }}:</p>
+                        <img src="{{ Storage::url($form['thumbnail']) }}" 
+                             class="h-32 w-32 object-cover rounded-lg border-2 border-slate-200 shadow-sm"
+                             alt="{{ $form['name'] ?? __('Product image') }}">
+                    </div>
+                @endif
+
+                <div wire:loading wire:target="thumbnailFile" class="text-sm text-emerald-600 flex items-center gap-2">
+                    <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    {{ __('Uploading...') }}
                 </div>
             </div>
         </div>

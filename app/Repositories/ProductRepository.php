@@ -54,4 +54,39 @@ final class ProductRepository extends EloquentBaseRepository implements ProductR
 
         return $product;
     }
+
+    /**
+     * Search products by query string
+     */
+    public function search(string $query = '', int $perPage = 15): LengthAwarePaginator
+    {
+        $builder = $this->query();
+
+        if ($query !== '') {
+            $like = '%'.$query.'%';
+            $builder->where(function ($inner) use ($like): void {
+                $inner->where('name', 'like', $like)
+                    ->orWhere('sku', 'like', $like)
+                    ->orWhere('barcode', 'like', $like);
+            });
+        }
+
+        return $builder->orderBy('name')->paginate($perPage);
+    }
+
+    /**
+     * Find product by SKU
+     */
+    public function findBySku(string $sku): ?Product
+    {
+        return $this->query()->where('sku', $sku)->first();
+    }
+
+    /**
+     * Get all products for export (chunked)
+     */
+    public function getAllChunked(int $chunkSize, callable $callback): void
+    {
+        $this->query()->orderBy('id')->chunk($chunkSize, $callback);
+    }
 }
