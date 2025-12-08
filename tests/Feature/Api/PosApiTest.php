@@ -110,7 +110,7 @@ class PosApiTest extends TestCase
         ]);
 
         // Should fail with either permission (403) or validation (422)
-        $this->assertContains($response->status(), [422, 403]);
+        $this->assertTrue(in_array($response->status(), [422, 403], true));
         $response->assertJsonStructure(['success']);
     }
 
@@ -128,7 +128,7 @@ class PosApiTest extends TestCase
         ]);
 
         // Should fail with either permission (403) or validation (422)
-        $this->assertContains($response->status(), [422, 403]);
+        $this->assertTrue(in_array($response->status(), [422, 403], true));
         $response->assertJsonStructure(['success']);
     }
 }
