@@ -314,7 +314,7 @@ class StoreSyncService
         }
 
         $existingOrder = Sale::where('external_reference', $externalId)
-            ->where('source', 'shopify')
+            ->where('channel', 'shopify')
             ->first();
 
         if ($existingOrder) {
@@ -349,7 +349,7 @@ class StoreSyncService
                 'discount_total' => (float) ($data['total_discounts'] ?? 0),
                 'grand_total' => (float) ($data['total_price'] ?? 0),
                 'status' => $this->mapShopifyOrderStatus($data['financial_status'] ?? 'pending'),
-                'source' => 'shopify',
+                'channel' => 'shopify',
                 'external_reference' => $externalId,
             ]);
 
@@ -417,7 +417,7 @@ class StoreSyncService
         }
 
         $existingOrder = Sale::where('external_reference', $externalId)
-            ->where('source', 'woocommerce')
+            ->where('channel', 'woocommerce')
             ->first();
 
         if ($existingOrder) {
@@ -455,7 +455,7 @@ class StoreSyncService
                 'discount_total' => (float) ($data['discount_total'] ?? 0),
                 'grand_total' => (float) ($data['total'] ?? 0),
                 'status' => $this->mapWooOrderStatus($data['status'] ?? 'pending'),
-                'source' => 'woocommerce',
+                'channel' => 'woocommerce',
                 'external_reference' => $externalId,
             ]);
 

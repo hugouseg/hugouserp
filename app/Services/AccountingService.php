@@ -77,33 +77,33 @@ class AccountingService
                     'journal_entry_id' => $entry->id,
                     'account_id' => $revenueAccount->id,
                     'debit' => 0,
-                    'credit' => $sale->subtotal,
+                    'credit' => $sale->sub_total,
                     'description' => 'Sales revenue',
                 ];
             }
 
             // Credit: Tax Payable (if applicable)
-            if ($sale->tax_amount > 0) {
+            if ($sale->tax_total > 0) {
                 $taxAccount = AccountMapping::getAccount('sales', 'tax_payable', $sale->branch_id);
                 if ($taxAccount) {
                     $lines[] = [
                         'journal_entry_id' => $entry->id,
                         'account_id' => $taxAccount->id,
                         'debit' => 0,
-                        'credit' => $sale->tax_amount,
+                        'credit' => $sale->tax_total,
                         'description' => 'Tax payable on sales',
                     ];
                 }
             }
 
             // Credit: Discount (if applicable)
-            if ($sale->discount_amount > 0) {
+            if ($sale->discount_total > 0) {
                 $discountAccount = AccountMapping::getAccount('sales', 'sales_discount', $sale->branch_id);
                 if ($discountAccount) {
                     $lines[] = [
                         'journal_entry_id' => $entry->id,
                         'account_id' => $discountAccount->id,
-                        'debit' => $sale->discount_amount,
+                        'debit' => $sale->discount_total,
                         'credit' => 0,
                         'description' => 'Discount given',
                     ];
@@ -156,20 +156,20 @@ class AccountingService
                 $lines[] = [
                     'journal_entry_id' => $entry->id,
                     'account_id' => $inventoryAccount->id,
-                    'debit' => $purchase->subtotal,
+                    'debit' => $purchase->sub_total,
                     'credit' => 0,
                     'description' => 'Inventory purchased',
                 ];
             }
 
             // Debit: Tax Recoverable
-            if ($purchase->tax_amount > 0) {
+            if ($purchase->tax_total > 0) {
                 $taxAccount = AccountMapping::getAccount('purchases', 'tax_recoverable', $purchase->branch_id);
                 if ($taxAccount) {
                     $lines[] = [
                         'journal_entry_id' => $entry->id,
                         'account_id' => $taxAccount->id,
-                        'debit' => $purchase->tax_amount,
+                        'debit' => $purchase->tax_total,
                         'credit' => 0,
                         'description' => 'Tax recoverable on purchases',
                     ];

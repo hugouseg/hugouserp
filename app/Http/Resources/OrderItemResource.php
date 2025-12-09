@@ -15,11 +15,11 @@ class OrderItemResource extends JsonResource
             'id' => $this->id,
             'product_id' => $this->product_id,
             'product' => $this->whenLoaded('product', fn () => new ProductResource($this->product)),
-            'quantity' => (int) $this->quantity,
+            'quantity' => (int) $this->qty,
             'unit_price' => (float) $this->unit_price,
             'discount' => (float) $this->discount,
             'tax' => (float) ($this->tax ?? 0),
-            'total' => (float) $this->total,
+            'total' => (float) $this->line_total,
             'notes' => $this->notes,
         ];
     }

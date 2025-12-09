@@ -79,9 +79,9 @@ class POSService implements POSServiceInterface
                     // Note: In high-concurrency environments, handle potential deadlocks with retry logic
                     $product = Product::lockForUpdate()->findOrFail($it['product_id']);
                     $qty = (float) ($it['qty'] ?? 1);
-                    $price = isset($it['price']) ? (float) $it['price'] : (float) $product->price;
+                    $price = isset($it['price']) ? (float) $it['price'] : (float) ($product->default_price ?? 0);
 
-                    if ($user && ! $user->can_modify_price && $price != (float) $product->price) {
+                    if ($user && ! $user->can_modify_price && $price != (float) ($product->default_price ?? 0)) {
                         abort(422, __('You are not allowed to modify prices'));
                     }
 
@@ -124,10 +124,10 @@ class POSService implements POSServiceInterface
                         'sale_id' => $sale->getKey(),
                         'product_id' => $product->getKey(),
                         'qty' => $qty,
-                        'price' => $price,
+                        'unit_price' => $price,
                         'discount' => $lineDisc,
                         'tax_id' => $it['tax_id'] ?? null,
-                        'total' => round($lineSub - $lineDisc + $lineTax, 2),
+                        'line_total' => round($lineSub - $lineDisc + $lineTax, 2),
                     ]);
                 }
 

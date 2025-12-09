@@ -32,7 +32,7 @@ class ProductsController extends BaseApiController
                     ->orWhere('barcode', 'like', '%'.$query.'%');
             })
             ->where('status', 'active')
-            ->select('id', 'name', 'sku', 'price', 'quantity', 'barcode', 'category_id', 'tax_id')
+            ->select('id', 'name', 'sku', 'default_price', 'barcode', 'category_id', 'tax_id')
             ->limit(50)
             ->get();
 
@@ -44,9 +44,8 @@ class ProductsController extends BaseApiController
                 'name' => $product->name,
                 'label' => $product->name, // Frontend fallback
                 'sku' => $product->sku,
-                'price' => (float) $product->price,
-                'sale_price' => (float) $product->price, // Frontend fallback
-                'quantity' => (int) $product->quantity,
+                'price' => (float) $product->default_price,
+                'sale_price' => (float) $product->default_price, // Frontend fallback
                 'barcode' => $product->barcode,
                 'tax_id' => $product->tax_id,
             ];
@@ -65,8 +64,6 @@ class ProductsController extends BaseApiController
                 ->orWhere('sku', 'like', '%'.$request->search.'%')
             )
             ->when($request->filled('category_id'), fn ($q) => $q->where('category_id', $request->category_id)
-            )
-            ->when($request->boolean('in_stock'), fn ($q) => $q->where('quantity', '>', 0)
             )
             ->orderBy($request->get('sort_by', 'created_at'), $request->get('sort_dir', 'desc'));
 

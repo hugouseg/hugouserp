@@ -23,19 +23,19 @@ class PurchaseService implements PurchaseServiceInterface
                     'warehouse_id' => $payload['warehouse_id'] ?? null,
                     'supplier_id' => $payload['supplier_id'] ?? null,
                     'status' => 'draft',
-                    'subtotal' => 0, 'tax_total' => 0, 'discount_total' => 0, 'total' => 0,
+                    'sub_total' => 0, 'tax_total' => 0, 'discount_total' => 0, 'grand_total' => 0,
                 ]);
                 foreach ($payload['items'] ?? [] as $it) {
                     PurchaseItem::create([
                         'purchase_id' => $p->getKey(),
                         'product_id' => $it['product_id'],
                         'qty' => (float) $it['qty'],
-                        'price' => (float) ($it['price'] ?? 0),
-                        'total' => (float) ($it['qty'] * ($it['price'] ?? 0)),
+                        'unit_cost' => (float) ($it['price'] ?? 0),
+                        'line_total' => (float) ($it['qty'] * ($it['price'] ?? 0)),
                     ]);
                 }
-                $p->subtotal = (float) $p->items()->sum('total');
-                $p->total = $p->subtotal;
+                $p->sub_total = (float) $p->items()->sum('line_total');
+                $p->grand_total = $p->sub_total;
                 $p->save();
 
                 return $p;
@@ -84,7 +84,7 @@ class PurchaseService implements PurchaseServiceInterface
             callback: function () use ($id, $amount) {
                 $p = Purchase::findOrFail($id);
                 $p->paid_total = round((float) $p->paid_total + $amount, 2);
-                if ($p->paid_total >= $p->total) {
+                if ($p->paid_total >= $p->grand_total) {
                     $p->status = 'paid';
                 }
                 $p->save();
