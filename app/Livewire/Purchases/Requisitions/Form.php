@@ -17,17 +17,25 @@ class Form extends Component
     use AuthorizesRequests;
 
     public ?PurchaseRequisition $requisition = null;
+
     public bool $isEdit = false;
 
     public string $subject = '';
+
     public string $priority = 'medium';
+
     public string $justification = '';
+
     public string $required_by = '';
+
     public string $notes = '';
+
     public ?int $department_id = null;
+
     public ?int $cost_center_id = null;
 
     public array $items = [];
+
     public array $products = [];
 
     protected array $rules = [

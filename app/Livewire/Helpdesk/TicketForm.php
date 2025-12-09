@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\Helpdesk;
 
-use App\Http\Requests\TicketStoreRequest;
-use App\Http\Requests\TicketUpdateRequest;
 use App\Models\Customer;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
@@ -24,18 +22,29 @@ class TicketForm extends Component
     use AuthorizesRequests;
 
     public ?Ticket $ticket = null;
+
     public bool $isEdit = false;
 
     public string $subject = '';
+
     public string $description = '';
+
     public ?int $customer_id = null;
+
     public ?int $category_id = null;
+
     public ?int $priority = null;
+
     public ?int $assigned_to = null;
+
     public ?int $sla_policy_id = null;
+
     public string $due_date = '';
+
     public string $status = 'new';
+
     public array $tags = [];
+
     public string $tagInput = '';
 
     protected HelpdeskService $helpdeskService;
@@ -75,16 +84,16 @@ class TicketForm extends Component
         }
 
         $tag = trim($this->tagInput);
-        if (!in_array($tag, $this->tags)) {
+        if (! in_array($tag, $this->tags)) {
             $this->tags[] = $tag;
         }
-        
+
         $this->tagInput = '';
     }
 
     public function removeTag(string $tag): void
     {
-        $this->tags = array_values(array_filter($this->tags, fn($t) => $t !== $tag));
+        $this->tags = array_values(array_filter($this->tags, fn ($t) => $t !== $tag));
     }
 
     public function save(): RedirectResponse
@@ -100,7 +109,7 @@ class TicketForm extends Component
             'tags' => $this->tags,
         ];
 
-        if (!empty($this->due_date)) {
+        if (! empty($this->due_date)) {
             $data['due_date'] = $this->due_date;
         }
 
@@ -138,8 +147,8 @@ class TicketForm extends Component
         $slaPolicies = TicketSLAPolicy::active()->get();
         $agents = User::whereHas('roles', function ($query) {
             $query->where('name', 'like', '%agent%')
-                  ->orWhere('name', 'like', '%support%')
-                  ->orWhere('name', 'Super Admin');
+                ->orWhere('name', 'like', '%support%')
+                ->orWhere('name', 'Super Admin');
         })->get();
 
         return view('livewire.helpdesk.ticket-form', [

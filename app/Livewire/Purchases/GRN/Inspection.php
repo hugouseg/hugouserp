@@ -15,9 +15,13 @@ class Inspection extends Component
     use AuthorizesRequests, WithFileUploads;
 
     public GoodsReceivedNote $grn;
+
     public array $inspectionData = [];
+
     public array $photos = [];
+
     public ?string $inspectorNotes = null;
+
     public ?string $finalDecision = 'pending';
 
     // Inspection criteria checklist
@@ -32,7 +36,7 @@ class Inspection extends Component
     public function mount(int $id): void
     {
         $this->authorize('grn.inspect');
-        
+
         $this->grn = GoodsReceivedNote::with(['items.product', 'purchaseOrder', 'supplier'])
             ->findOrFail($id);
 
@@ -54,26 +58,27 @@ class Inspection extends Component
 
     public function updateInspection(int $itemId, string $field, $value): void
     {
-        if (!isset($this->inspectionData[$itemId])) {
+        if (! isset($this->inspectionData[$itemId])) {
             $this->inspectionData[$itemId] = [];
         }
-        
+
         $this->inspectionData[$itemId][$field] = $value;
     }
 
     public function acceptGRN(): ?RedirectResponse
     {
         $this->authorize('grn.approve');
-        
+
         $this->validate([
             'inspectorNotes' => 'nullable|string|max:1000',
         ]);
 
         // Check if all checklist items are verified
-        $allVerified = collect($this->checklist)->every(fn($item) => $item === true);
+        $allVerified = collect($this->checklist)->every(fn ($item) => $item === true);
 
-        if (!$allVerified) {
+        if (! $allVerified) {
             session()->flash('error', __('Please complete all inspection checklist items before accepting.'));
+
             return null;
         }
 
@@ -97,14 +102,14 @@ class Inspection extends Component
         }
 
         session()->flash('success', __('GRN inspection completed and approved.'));
-        
+
         return redirect()->route('purchases.grn.index');
     }
 
     public function rejectGRN(): ?RedirectResponse
     {
         $this->authorize('grn.reject');
-        
+
         $this->validate([
             'inspectorNotes' => 'required|string|max:1000',
         ]);
@@ -117,32 +122,34 @@ class Inspection extends Component
         ]);
 
         session()->flash('success', __('GRN rejected with inspection notes.'));
-        
+
         return redirect()->route('purchases.grn.index');
     }
 
     public function partialAccept(): ?RedirectResponse
     {
         $this->authorize('grn.approve');
-        
+
         $this->validate([
             'inspectorNotes' => 'nullable|string|max:1000',
         ]);
 
         // Check which items passed/failed
         $passedItems = collect($this->inspectionData)
-            ->filter(fn($data) => ($data['pass'] ?? false) === true)
+            ->filter(fn ($data) => ($data['pass'] ?? false) === true)
             ->count();
 
         $totalItems = $this->grn->items->count();
 
         if ($passedItems === 0) {
             session()->flash('error', __('No items passed inspection. Please reject the GRN instead.'));
+
             return null;
         }
 
         if ($passedItems === $totalItems) {
             session()->flash('error', __('All items passed. Please use full accept instead.'));
+
             return null;
         }
 
@@ -168,7 +175,7 @@ class Inspection extends Component
         }
 
         session()->flash('success', __('GRN marked as partial acceptance.'));
-        
+
         return redirect()->route('purchases.grn.index');
     }
 

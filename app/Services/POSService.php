@@ -35,7 +35,7 @@ class POSService implements POSServiceInterface
                 $branchId = $payload['branch_id'] ?? request()->attributes->get('branch_id');
 
                 // Validate branch ID is present
-                abort_if(!$branchId, 422, __('Branch context is required'));
+                abort_if(! $branchId, 422, __('Branch context is required'));
 
                 // Validate POS session exists and is open
                 if (($payload['channel'] ?? 'pos') === 'pos') {

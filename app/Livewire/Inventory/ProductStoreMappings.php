@@ -152,7 +152,7 @@ class ProductStoreMappings extends Component
         if (! $user || ! $user->can('inventory.products.delete')) {
             abort(403);
         }
-        
+
         ProductStoreMapping::findOrFail($id)->delete();
         session()->flash('success', __('Mapping deleted successfully'));
     }

@@ -17,12 +17,17 @@ class Form extends Component
     use AuthorizesRequests;
 
     public ?GoodsReceivedNote $grn = null;
+
     public ?int $grnId = null;
 
     public ?int $purchaseOrderId = null;
+
     public ?string $receivedDate = null;
+
     public ?int $inspectorId = null;
+
     public ?string $notes = null;
+
     public array $items = [];
 
     public function mount(?int $id = null): void
@@ -60,12 +65,12 @@ class Form extends Component
 
     public function loadPOItems(): void
     {
-        if (!$this->purchaseOrderId) {
+        if (! $this->purchaseOrderId) {
             return;
         }
 
         $po = PurchaseOrder::with('items.product')->findOrFail($this->purchaseOrderId);
-        
+
         $this->items = $po->items->map(function ($item) {
             return [
                 'product_id' => $item->product_id,
@@ -85,10 +90,10 @@ class Form extends Component
         $discrepancies = [];
 
         foreach ($this->items as $index => $item) {
-            $ordered = (float)($item['quantity_ordered'] ?? 0);
-            $received = (float)($item['quantity_received'] ?? 0);
-            $damaged = (float)($item['quantity_damaged'] ?? 0);
-            $defective = (float)($item['quantity_defective'] ?? 0);
+            $ordered = (float) ($item['quantity_ordered'] ?? 0);
+            $received = (float) ($item['quantity_received'] ?? 0);
+            $damaged = (float) ($item['quantity_damaged'] ?? 0);
+            $defective = (float) ($item['quantity_defective'] ?? 0);
 
             if ($received != $ordered) {
                 $discrepancies[] = "Item {$index}: Quantity mismatch";
@@ -132,7 +137,7 @@ class Form extends Component
 
         // Save items
         $this->grn->items()->delete();
-        
+
         foreach ($this->items as $item) {
             GoodsReceivedNoteItem::create([
                 'goods_received_note_id' => $this->grn->id,
@@ -147,7 +152,7 @@ class Form extends Component
         }
 
         session()->flash('success', __('GRN saved successfully.'));
-        
+
         return redirect()->route('purchases.grn.index');
     }
 
@@ -182,7 +187,7 @@ class Form extends Component
 
         // Save items
         $this->grn->items()->delete();
-        
+
         foreach ($this->items as $item) {
             GoodsReceivedNoteItem::create([
                 'goods_received_note_id' => $this->grn->id,
@@ -195,9 +200,9 @@ class Form extends Component
                 'inspection_notes' => $item['inspection_notes'] ?? null,
             ]);
         }
-        
+
         session()->flash('success', __('GRN submitted for inspection.'));
-        
+
         return redirect()->route('purchases.grn.index');
     }
 
@@ -206,7 +211,7 @@ class Form extends Component
         $purchaseOrders = PurchaseOrder::where('status', 'approved')
             ->with('supplier')
             ->get();
-        
+
         $inspectors = User::role('inspector')->get();
 
         return view('livewire.purchases.grn.form', [

@@ -161,7 +161,7 @@ class RentalService implements RentalServiceInterface
 
                 // Get branch_id from contract, ensure it's set
                 $branchId = $i->contract->branch_id ?? null;
-                abort_if(!$branchId, 422, __('Branch context is required'));
+                abort_if(! $branchId, 422, __('Branch context is required'));
 
                 // Create payment record
                 \App\Models\RentalPayment::create([
@@ -239,13 +239,14 @@ class RentalService implements RentalServiceInterface
                         'reason' => 'Invoice already exists for this period',
                         'invoice_id' => $existingInvoice->id,
                     ];
+
                     continue;
                 }
 
                 // Generate invoice code
                 $lastInvoice = RentalInvoice::orderBy('id', 'desc')->first();
                 $nextNumber = $lastInvoice ? (intval(substr($lastInvoice->code, -6)) + 1) : 1;
-                $code = 'RI-' . str_pad((string) $nextNumber, 6, '0', STR_PAD_LEFT);
+                $code = 'RI-'.str_pad((string) $nextNumber, 6, '0', STR_PAD_LEFT);
 
                 // Calculate due date (typically start of month + grace period)
                 $dueDate = $forMonth->copy()->startOfMonth()->addDays(7);

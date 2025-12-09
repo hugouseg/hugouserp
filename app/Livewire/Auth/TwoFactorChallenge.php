@@ -27,6 +27,7 @@ class TwoFactorChallenge extends Component
     {
         if (! Auth::check() || ! Auth::user()->hasTwoFactorEnabled()) {
             $this->redirect(route('dashboard'));
+
             return;
         }
 
