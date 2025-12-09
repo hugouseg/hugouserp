@@ -13,7 +13,7 @@
 
 ## Overview
 
-This guide covers the enhanced accounting system and workflow engine that have been implemented in HugousERP. These features provide:
+This guide covers the enhanced accounting system and workflow engine that have been implemented in HugoERP. These features provide:
 
 - **Double-Entry Accounting**: Full support for proper accounting practices
 - **Automatic Journal Entries**: Generated from operational transactions (sales, purchases, payroll, rentals)
@@ -785,4 +785,4 @@ For questions or issues:
 
 ## License
 
-Part of HugousERP - All rights reserved
+Part of HugoERP - All rights reserved

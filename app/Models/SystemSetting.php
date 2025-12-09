@@ -28,12 +28,17 @@ class SystemSetting extends Model
         'value',
         'type',
         'group',
+        'category',
         'is_public',
+        'is_encrypted',
+        'description',
+        'sort_order',
     ];
 
     protected $casts = [
         'value' => 'array',
         'is_public' => 'bool',
+        'is_encrypted' => 'bool',
     ];
 
     /** Scopes */

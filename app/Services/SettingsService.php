@@ -46,7 +46,15 @@ class SettingsService
 
                 if ($setting->is_encrypted && $value) {
                     try {
-                        return Crypt::decryptString(is_array($value) ? ($value[0] ?? '') : $value);
+                        $decrypted = Crypt::decryptString(is_array($value) ? ($value[0] ?? '') : $value);
+                        
+                        // Attempt to decode JSON - if it's an array, return it as such
+                        $decoded = json_decode($decrypted, true);
+                        if (is_array($decoded)) {
+                            return $decoded;
+                        }
+                        
+                        return $decrypted;
                     } catch (\Exception $e) {
                         Log::error('Failed to decrypt setting', ['key' => $key, 'error' => $e->getMessage()]);
 

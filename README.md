@@ -56,12 +56,18 @@ purchases, HRM, accounting, POS, and rental management.
 git clone https://github.com/hugouseg/hugouserp.git
 cd hugouserp
 
+# Copy environment file and prepare SQLite database
+cp .env.example .env
+touch database/database.sqlite
+
 # Run automated setup
 composer run setup
 
 # Start development server
 composer run dev
 ```
+
+> **Note:** The default configuration uses SQLite for quick local testing with zero database configuration required. Simply ensure the `database/database.sqlite` file exists before running migrations.
 
 ### Manual Setup
 
@@ -97,7 +103,7 @@ Key configuration options in `.env`:
 
 ```env
 # Application
-APP_NAME="HugousERP"
+APP_NAME="HugoERP"
 APP_ENV=local
 APP_DEBUG=true
 APP_URL=http://localhost
