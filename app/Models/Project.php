@@ -75,8 +75,11 @@ class Project extends Model
 
     public function currency(): BelongsTo
     {
-        // Note: Migration uses string 'currency' column, not FK to currencies table
-        // This relationship may not work as expected - consider migration change if needed
+        // Note: The migration uses 'currency' as a string column (3-char code like 'USD', 'EUR')
+        // This relationship assumes a 'currencies' table exists with a 'code' column.
+        // If the currencies table doesn't have a 'code' column or doesn't exist,
+        // this relationship may not work. Consider using an accessor instead:
+        // public function getCurrencyCodeAttribute() { return $this->currency; }
         return $this->belongsTo(Currency::class, 'currency', 'code');
     }
 

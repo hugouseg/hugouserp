@@ -25,32 +25,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Check if we need to recreate tables in correct order
-        // This migration is safe to run multiple times
+        // This migration ensures ticket-related tables exist in the correct order
+        // and fixes any FK issues. It's safe to run multiple times.
         
-        // If ticket_categories exists and has incorrect FK, we need to fix it
-        if (Schema::hasTable('ticket_categories') && 
-            Schema::hasTable('ticket_sla_policies')) {
-            
-            // The tables exist but may have been created in wrong order initially
-            // We just need to ensure the FK constraint exists properly
-            try {
-                // Check if the FK exists, if not add it
-                Schema::table('ticket_categories', function (Blueprint $table) {
-                    // This will only add the FK if it doesn't exist
-                    // Laravel will handle duplicate constraint attempts gracefully
-                });
-            } catch (\Exception $e) {
-                // FK already exists or table structure is fine
-            }
-        }
+        // The tables should already exist from the original migration
+        // (2025_12_07_231200_create_tickets_tables.php) which has been fixed.
+        // This migration just ensures all necessary indexes exist.
         
-        // Ensure all necessary indexes exist on tickets table
         if (Schema::hasTable('tickets')) {
             try {
                 Schema::table('tickets', function (Blueprint $table) {
-                    // These indexes should already exist from the original migration
-                    // This is just a safety check
+                    // Ensure indexes exist (idempotent operation)
                     if (!$this->indexExists('tickets', 'tickets_branch_id_status_index')) {
                         $table->index(['branch_id', 'status'], 'tickets_branch_id_status_index');
                     }
@@ -64,7 +49,7 @@ return new class extends Migration
                     }
                 });
             } catch (\Exception $e) {
-                // Indexes already exist
+                // Indexes already exist or table structure is fine
             }
         }
     }

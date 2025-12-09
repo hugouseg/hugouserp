@@ -33,11 +33,11 @@ return new class extends Migration
                 // Add correct indexes on actual columns
                 if (Schema::hasColumn('audit_logs', 'subject_type') && 
                     Schema::hasColumn('audit_logs', 'subject_id')) {
-                    $this->safeAddIndex($table, ['subject_type', 'subject_id'], 'audit_logs_subject_idx');
+                    $this->safeAddIndex($table, ['subject_type', 'subject_id'], 'audit_logs_subject_idx', 'audit_logs');
                 }
                 
                 if (Schema::hasColumn('audit_logs', 'action')) {
-                    $this->safeAddIndex($table, 'action', 'audit_logs_action_idx');
+                    $this->safeAddIndex($table, 'action', 'audit_logs_action_idx', 'audit_logs');
                 }
             });
         }
@@ -51,7 +51,7 @@ return new class extends Migration
                 // Add correct index on is_active
                 if (Schema::hasColumn('suppliers', 'branch_id') && 
                     Schema::hasColumn('suppliers', 'is_active')) {
-                    $this->safeAddIndex($table, ['branch_id', 'is_active'], 'suppliers_br_active_idx');
+                    $this->safeAddIndex($table, ['branch_id', 'is_active'], 'suppliers_br_active_idx', 'suppliers');
                 }
             });
         }
@@ -72,7 +72,7 @@ return new class extends Migration
                 
                 // Add correct index on contract_id (may already exist as FK)
                 if (Schema::hasColumn('rental_invoices', 'contract_id')) {
-                    $this->safeAddIndex($table, 'contract_id', 'rental_invoices_contract_idx');
+                    $this->safeAddIndex($table, 'contract_id', 'rental_invoices_contract_idx', 'rental_invoices');
                 }
             });
         }
@@ -176,11 +176,12 @@ return new class extends Migration
      * @param  \Illuminate\Database\Schema\Blueprint  $table
      * @param  string|array  $columns
      * @param  string|null  $indexName
+     * @param  string  $tableName
      */
-    private function safeAddIndex(Blueprint $table, string|array $columns, ?string $indexName = null): void
+    private function safeAddIndex(Blueprint $table, string|array $columns, ?string $indexName = null, string $tableName = ''): void
     {
         try {
-            if ($indexName && $this->indexExists($table->getTable(), $indexName)) {
+            if ($indexName && $tableName && $this->indexExists($tableName, $indexName)) {
                 return;
             }
             
