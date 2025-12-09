@@ -41,11 +41,31 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-4">
+                <div class="flex flex-wrap items-center gap-4">
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" wire:model="exportIncludeHeaders" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
                         <span class="text-sm text-gray-700 dark:text-gray-300">{{ __('Include Headers') }}</span>
                     </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" wire:model="exportRespectFilters" checked class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
+                        <span class="text-sm text-gray-700 dark:text-gray-300">{{ __('Respect current filters') }}</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" wire:model="exportIncludeTotals" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
+                        <span class="text-sm text-gray-700 dark:text-gray-300">{{ __('Include totals row') }}</span>
+                    </label>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ __('Max Rows') }}</label>
+                    <select wire:model="exportMaxRows" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500">
+                        <option value="100">100</option>
+                        <option value="500">500</option>
+                        <option value="1000">1,000</option>
+                        <option value="5000">5,000</option>
+                        <option value="10000">10,000</option>
+                        <option value="all">{{ __('All rows') }}</option>
+                    </select>
                 </div>
 
                 <div>
@@ -65,6 +85,22 @@
                     </div>
                     <p class="mt-1 text-xs text-gray-500">{{ count($selectedExportColumns ?? []) }} {{ __('of') }} {{ count($exportColumns ?? []) }} {{ __('columns selected') }}</p>
                 </div>
+
+                @if((int)($exportMaxRows ?? 0) > 5000 || ($exportMaxRows ?? '') === 'all')
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" wire:model="exportUseBackgroundJob" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 mt-0.5">
+                        <div>
+                            <span class="text-sm font-medium text-gray-900 dark:text-gray-100 block">
+                                {{ __('Process in background') }}
+                            </span>
+                            <span class="text-xs text-gray-600 dark:text-gray-400">
+                                {{ __('Large exports will be queued and you\'ll receive a notification when ready') }}
+                            </span>
+                        </div>
+                    </label>
+                </div>
+                @endif
             </div>
 
             <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">

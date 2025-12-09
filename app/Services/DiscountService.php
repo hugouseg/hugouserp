@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Exceptions\InvalidDiscountException;
 use App\Rules\ValidDiscount;
 use App\Services\Contracts\DiscountServiceInterface;
 use App\Traits\HandlesServiceErrors;
@@ -18,11 +19,16 @@ class DiscountService implements DiscountServiceInterface
             callback: function () use ($value, $asPercent, $cap) {
                 $value = max(0.0, $value);
 
-                $cap = $cap ?? (
-                    $asPercent
-                        ? (float) config('pos.discount.max_percent', 20)
-                        : (float) config('pos.discount.max_amount', 1000)
-                );
+                $cap = $cap ?? $this->getMaxDiscount($asPercent);
+
+                // Validate discount against cap
+                if ($value > $cap) {
+                    throw new InvalidDiscountException(
+                        $value,
+                        $cap,
+                        $asPercent ? 'percent' : 'amount'
+                    );
+                }
 
                 if ($asPercent) {
                     $rule = ValidDiscount::percent($cap);
@@ -63,5 +69,40 @@ class DiscountService implements DiscountServiceInterface
             context: ['qty' => $qty, 'price' => $price, 'discount' => $discount, 'percent' => $percent],
             defaultValue: 0.0
         );
+    }
+
+    /**
+     * Get maximum allowed discount from configuration
+     */
+    protected function getMaxDiscount(bool $asPercent): float
+    {
+        if ($asPercent) {
+            // Check sales config first, then fallback to POS config
+            return (float) config('sales.max_line_discount_percent', 
+                config('pos.discount.max_percent', 50)
+            );
+        }
+
+        return (float) config('pos.discount.max_amount', 1000);
+    }
+
+    /**
+     * Validate invoice-level discount
+     */
+    public function validateInvoiceDiscount(float $discount, bool $asPercent = true): bool
+    {
+        $maxDiscount = $asPercent 
+            ? (float) config('sales.max_invoice_discount_percent', 30)
+            : (float) config('pos.discount.max_amount', 1000);
+
+        if ($discount > $maxDiscount) {
+            throw new InvalidDiscountException(
+                $discount,
+                $maxDiscount,
+                $asPercent ? 'percent' : 'amount'
+            );
+        }
+
+        return true;
     }
 }
