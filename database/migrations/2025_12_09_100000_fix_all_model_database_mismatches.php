@@ -176,12 +176,14 @@ return new class extends Migration
             if ($addedEmployeeId) {
                 DB::table('project_time_logs')
                     ->whereNull('employee_id')
+                    ->whereNotNull('user_id')
                     ->update(['employee_id' => DB::raw('user_id')]);
             }
 
             if ($addedDate) {
                 DB::table('project_time_logs')
                     ->whereNull('date')
+                    ->whereNotNull('log_date')
                     ->update(['date' => DB::raw('log_date')]);
             }
 

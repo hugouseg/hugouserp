@@ -121,7 +121,7 @@ class ProjectTimeLog extends Model
         if ($value !== null) {
             return $this->asDateTime($value);
         }
-        $rawDate = $this->getRawOriginal('date');
+        $rawDate = $this->attributes['date'] ?? null;
         return $rawDate ? $this->asDateTime($rawDate) : null;
     }
 
@@ -131,7 +131,7 @@ class ProjectTimeLog extends Model
         if ($value !== null) {
             return $value;
         }
-        return $this->getRawOriginal('employee_id');
+        return $this->attributes['employee_id'] ?? null;
     }
 
     public function getIsBillableAttribute($value)
@@ -140,7 +140,7 @@ class ProjectTimeLog extends Model
         if ($value !== null) {
             return (bool) $value;
         }
-        $legacyBillable = $this->getRawOriginal('billable');
+        $legacyBillable = $this->attributes['billable'] ?? null;
         return $legacyBillable !== null ? (bool) $legacyBillable : true;
     }
 

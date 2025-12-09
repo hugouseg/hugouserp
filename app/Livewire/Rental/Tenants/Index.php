@@ -187,7 +187,7 @@ class Index extends Component
 
         $stats = $this->getStatistics();
 
-        return view('livewire.rentals.tenants.index', [
+        return view('livewire.rental.tenants.index', [
             'tenants' => $tenants,
             'stats' => $stats,
         ]);

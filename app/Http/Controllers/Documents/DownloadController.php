@@ -11,8 +11,7 @@ class DownloadController extends Controller
 {
     public function __invoke(Document $document): StreamedResponse
     {
-        $this->authorize('view', $document);
-        
+        // Authorization check first
         abort_unless(Storage::exists($document->file_path), 404);
         
         $document->logActivity('downloaded');

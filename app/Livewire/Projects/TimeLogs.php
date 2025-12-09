@@ -66,8 +66,8 @@ class TimeLogs extends Component
             'task_id', 'employee_id', 'hours',
             'is_billable', 'hourly_rate', 'description'
         ]));
-        $this->date = optional($this->editingLog->log_date)->format('Y-m-d')
-            ?? optional($this->editingLog->date)->format('Y-m-d');
+        $this->date = $this->editingLog->log_date?->format('Y-m-d')
+            ?? $this->editingLog->date?->format('Y-m-d');
         $this->showModal = true;
     }
 
