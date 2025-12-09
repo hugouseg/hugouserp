@@ -48,9 +48,9 @@ class SettingsService
                     try {
                         $decrypted = Crypt::decryptString(is_array($value) ? ($value[0] ?? '') : $value);
                         
-                        // Attempt to decode JSON - if it's an array, return it as such
+                        // Attempt to decode JSON - if it's a valid array, return it as such
                         $decoded = json_decode($decrypted, true);
-                        if (is_array($decoded)) {
+                        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                             return $decoded;
                         }
                         
