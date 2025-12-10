@@ -2,6 +2,19 @@
 
 This document outlines planned improvements and features for HugousERP, organized by priority and module.
 
+## Recently Completed (December 2025)
+
+### Database Portability ✅
+- Created `DatabaseCompatibilityService` for MySQL 8.4+, PostgreSQL 13+, SQLite 3.35+ support
+- Refactored `SalesAnalytics` to use portable date/time operations
+- Eliminated PostgreSQL-specific EXTRACT() and DATE_TRUNC() usage
+
+### Code Cleanup ✅
+- Removed 18 unused classes (2 events, 3 jobs, 2 traits, 2 observers, 1 exception, 4 rules, 4 policies)
+- Eliminated ~800+ lines of dead code
+- Archived 45 AI-generated documentation files
+- Retained only 6 core documentation files + ROADMAP
+
 ## High Priority
 
 ### Database & Performance
