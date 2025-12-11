@@ -102,9 +102,45 @@ class Form extends Component
             'lines' => ['required', 'array', 'min:2'],
             'lines.*.account_id' => ['required', 'exists:accounts,id'],
             'lines.*.description' => ['nullable', 'string', 'max:500'],
-            'lines.*.debit' => ['required', 'numeric', 'min:0'],
-            'lines.*.credit' => ['required', 'numeric', 'min:0'],
+            'lines.*.debit' => ['nullable', 'numeric', 'min:0'],
+            'lines.*.credit' => ['nullable', 'numeric', 'min:0'],
         ];
+    }
+
+    protected function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            // Check that each line has either debit OR credit (not both, not neither)
+            foreach ($this->lines as $index => $line) {
+                $debit = (float) ($line['debit'] ?? 0);
+                $credit = (float) ($line['credit'] ?? 0);
+
+                if ($debit > 0 && $credit > 0) {
+                    $validator->errors()->add(
+                        "lines.{$index}.debit",
+                        __('A line cannot have both debit and credit amounts.')
+                    );
+                } elseif ($debit == 0 && $credit == 0) {
+                    $validator->errors()->add(
+                        "lines.{$index}.debit",
+                        __('A line must have either a debit or credit amount.')
+                    );
+                }
+            }
+
+            // Check that total debits equal total credits
+            $totalDebit = $this->getTotalDebit();
+            $totalCredit = $this->getTotalCredit();
+
+            if (abs($totalDebit - $totalCredit) > 0.01) {
+                $validator->errors()->add(
+                    'lines',
+                    __('Total debits must equal total credits. Difference: :amount', [
+                        'amount' => number_format(abs($totalDebit - $totalCredit), 2),
+                    ])
+                );
+            }
+        });
     }
 
     public function save(): void

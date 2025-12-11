@@ -98,13 +98,13 @@
                                         @enderror
                                     </td>
                                     <td>
-                                        <input type="number" wire:model="lines.{{ $index }}.debit" step="0.01" min="0" class="erp-input" required>
+                                        <input type="number" wire:model="lines.{{ $index }}.debit" step="0.01" min="0" class="erp-input">
                                         @error("lines.{$index}.debit")
                                             <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                                         @enderror
                                     </td>
                                     <td>
-                                        <input type="number" wire:model="lines.{{ $index }}.credit" step="0.01" min="0" class="erp-input" required>
+                                        <input type="number" wire:model="lines.{{ $index }}.credit" step="0.01" min="0" class="erp-input">
                                         @error("lines.{$index}.credit")
                                             <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                                         @enderror

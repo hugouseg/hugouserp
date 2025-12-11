@@ -590,7 +590,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/accounts/{account}/edit', \App\Livewire\Accounting\Accounts\Form::class)
             ->name('accounts.edit')
-            ->middleware('can:accounting.create');
+            ->middleware('can:accounting.view');
 
         Route::get('/journal-entries/create', \App\Livewire\Accounting\JournalEntries\Form::class)
             ->name('journal-entries.create')
@@ -598,7 +598,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/journal-entries/{journalEntry}/edit', \App\Livewire\Accounting\JournalEntries\Form::class)
             ->name('journal-entries.edit')
-            ->middleware('can:accounting.create');
+            ->middleware('can:accounting.view');
     });
 
     // EXPENSES & INCOME (financial transactions)
