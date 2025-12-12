@@ -1030,5 +1030,12 @@
     "No sales found.": "لم يتم العثور على مبيعات.",
     "No expiring contracts found.": "لا توجد عقود منتهية الصلاحية.",
     "No notifications found.": "لا توجد إشعارات.",
-    "No attendance records found.": "لم يتم العثور على سجلات حضور."
+    "No attendance records found.": "لم يتم العثور على سجلات حضور.",
+    "Sales": "المبيعات",
+    "Warehouse": "المستودع",
+    "Rental": "التأجير",
+    "Business Modules": "وحدات الأعمال",
+    "Contacts": "جهات الاتصال",
+    "Operations": "العمليات",
+    "Administration": "الإدارة"
 }

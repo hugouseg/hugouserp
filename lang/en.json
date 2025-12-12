@@ -1030,5 +1030,12 @@
     "No sales found.": "No sales found.",
     "No expiring contracts found.": "No expiring contracts found.",
     "No notifications found.": "No notifications found.",
-    "No attendance records found.": "No attendance records found."
+    "No attendance records found.": "No attendance records found.",
+    "Sales": "Sales",
+    "Warehouse": "Warehouse",
+    "Rental": "Rental",
+    "Business Modules": "Business Modules",
+    "Contacts": "Contacts",
+    "Operations": "Operations",
+    "Administration": "Administration"
 }

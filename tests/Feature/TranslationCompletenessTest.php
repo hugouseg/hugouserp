@@ -1,0 +1,170 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature;
+
+use Tests\TestCase;
+
+class TranslationCompletenessTest extends TestCase
+{
+    /**
+     * Test that all translation keys used in the app exist in both English and Arabic.
+     */
+    public function test_all_translation_keys_exist_in_both_languages(): void
+    {
+        $enJson = json_decode(file_get_contents(lang_path('en.json')), true);
+        $arJson = json_decode(file_get_contents(lang_path('ar.json')), true);
+
+        $this->assertIsArray($enJson, 'English JSON translations should be valid');
+        $this->assertIsArray($arJson, 'Arabic JSON translations should be valid');
+
+        $enKeys = array_keys($enJson);
+        $arKeys = array_keys($arJson);
+
+        $missingInArabic = array_diff($enKeys, $arKeys);
+        $missingInEnglish = array_diff($arKeys, $enKeys);
+
+        $this->assertEmpty(
+            $missingInArabic,
+            'Missing translations in Arabic: ' . implode(', ', array_slice($missingInArabic, 0, 10))
+        );
+
+        $this->assertEmpty(
+            $missingInEnglish,
+            'Missing translations in English: ' . implode(', ', array_slice($missingInEnglish, 0, 10))
+        );
+    }
+
+    /**
+     * Test that Arabic translations are not empty or same as English.
+     */
+    public function test_arabic_translations_are_properly_translated(): void
+    {
+        $enJson = json_decode(file_get_contents(lang_path('en.json')), true);
+        $arJson = json_decode(file_get_contents(lang_path('ar.json')), true);
+
+        $untranslated = [];
+
+        foreach ($enJson as $key => $enValue) {
+            if (isset($arJson[$key])) {
+                // Check if Arabic translation is empty or exactly same as English
+                if (empty($arJson[$key]) || $arJson[$key] === $enValue) {
+                    // Allow some technical terms to be the same
+                    if (!$this->isTechnicalTerm($key)) {
+                        $untranslated[] = $key;
+                    }
+                }
+            }
+        }
+
+        $this->assertEmpty(
+            $untranslated,
+            'These keys have no proper Arabic translation: ' . implode(', ', array_slice($untranslated, 0, 10))
+        );
+    }
+
+    /**
+     * Test that sidebar labels are all translatable.
+     */
+    public function test_sidebar_labels_are_translatable(): void
+    {
+        $sidebarFile = resource_path('views/components/sidebar/main.blade.php');
+        $this->assertFileExists($sidebarFile);
+
+        $content = file_get_contents($sidebarFile);
+
+        // Check that all label attributes use translation
+        preg_match_all('/label="([^"]+)"/', $content, $matches);
+
+        $enJson = json_decode(file_get_contents(lang_path('en.json')), true);
+        $arJson = json_decode(file_get_contents(lang_path('ar.json')), true);
+
+        $missingLabels = [];
+
+        foreach ($matches[1] as $label) {
+            if (!isset($enJson[$label]) || !isset($arJson[$label])) {
+                $missingLabels[] = $label;
+            }
+        }
+
+        $this->assertEmpty(
+            $missingLabels,
+            'Sidebar labels missing translations: ' . implode(', ', $missingLabels)
+        );
+    }
+
+    /**
+     * Test that section headers in sidebar are translatable.
+     */
+    public function test_sidebar_section_headers_are_translatable(): void
+    {
+        $sidebarFile = resource_path('views/components/sidebar/main.blade.php');
+        $this->assertFileExists($sidebarFile);
+
+        $content = file_get_contents($sidebarFile);
+
+        // Extract section headers
+        preg_match_all("/__\('([^']+)'\)/", $content, $matches);
+
+        $enJson = json_decode(file_get_contents(lang_path('en.json')), true);
+        $arJson = json_decode(file_get_contents(lang_path('ar.json')), true);
+
+        $missingHeaders = [];
+
+        foreach ($matches[1] as $header) {
+            if (!isset($enJson[$header]) || !isset($arJson[$header])) {
+                $missingHeaders[] = $header;
+            }
+        }
+
+        $this->assertEmpty(
+            $missingHeaders,
+            'Section headers missing translations: ' . implode(', ', $missingHeaders)
+        );
+    }
+
+    /**
+     * Test that common UI strings exist in translations.
+     */
+    public function test_common_ui_strings_exist(): void
+    {
+        $commonStrings = [
+            'Save', 'Cancel', 'Delete', 'Edit', 'Create', 'Search',
+            'Actions', 'Status', 'Active', 'Inactive', 'Dashboard',
+            'Settings', 'Reports', 'Users', 'Yes', 'No'
+        ];
+
+        $enJson = json_decode(file_get_contents(lang_path('en.json')), true);
+        $arJson = json_decode(file_get_contents(lang_path('ar.json')), true);
+
+        $missing = [];
+
+        foreach ($commonStrings as $string) {
+            if (!isset($enJson[$string]) || !isset($arJson[$string])) {
+                $missing[] = $string;
+            }
+        }
+
+        $this->assertEmpty(
+            $missing,
+            'Common UI strings missing: ' . implode(', ', $missing)
+        );
+    }
+
+    /**
+     * Check if a key represents a technical term that can be untranslated.
+     */
+    private function isTechnicalTerm(string $key): bool
+    {
+        $technicalTerms = ['ERP', 'API', 'SMS', 'POS', 'SKU', 'N/A', 'OK'];
+
+        foreach ($technicalTerms as $term) {
+            if (str_contains($key, $term)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
