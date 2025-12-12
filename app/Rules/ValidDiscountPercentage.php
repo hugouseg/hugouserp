@@ -40,7 +40,7 @@ class ValidDiscountPercentage implements ValidationRule
             return;
         }
 
-        $decimalPattern = '/^-?\d+(\.\d{0,'.preg_quote((string) $this->decimalPlaces, '/').'})?$/';
+        $decimalPattern = '/^\d+(\.\d{0,'.preg_quote((string) $this->decimalPlaces, '/').'})?$/';
         if (! preg_match($decimalPattern, (string) $value)) {
             $fail(__('validation.decimal', ['attribute' => $attribute, 'decimal' => $this->decimalPlaces]));
         }
