@@ -21,11 +21,11 @@ class UpdateStockOnPurchase implements ShouldQueue
                 'branch_id' => $branchId,
                 'warehouse_id' => $warehouseId,
                 'product_id' => $item->product_id,
-                'ref_type' => 'purchase',
-                'ref_id' => $purchase->getKey(),
+                'reference_type' => 'purchase',
+                'reference_id' => $purchase->getKey(),
                 'qty' => $item->qty,
                 'direction' => 'in',
-                'note' => 'Purchase received',
+                'notes' => 'Purchase received',
                 'created_by' => $purchase->created_by,
             ]);
         }

@@ -144,9 +144,14 @@ class CurrencyService
                     [
                         'rate' => $rate,
                         'is_active' => true,
-                        'created_by' => auth()->id(),
                     ]
                 );
+
+                // Set created_by only for newly created rates
+                if ($currencyRate->wasRecentlyCreated) {
+                    $currencyRate->created_by = auth()->id();
+                    $currencyRate->save();
+                }
 
                 $this->clearRateCache($from, $to, $effectiveDate);
 
@@ -175,7 +180,7 @@ class CurrencyService
         $to = strtoupper($to);
 
         $dateKey = $effectiveDate
-            ? (is_string($effectiveDate) ? $effectiveDate : $effectiveDate->format('Y-m-d'))
+            ? \Carbon\Carbon::parse($effectiveDate)->format('Y-m-d')
             : 'latest';
 
         foreach ([$dateKey, 'latest'] as $key) {

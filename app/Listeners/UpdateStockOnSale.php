@@ -21,11 +21,11 @@ class UpdateStockOnSale implements ShouldQueue
                 'branch_id' => $branchId,
                 'warehouse_id' => $warehouseId,
                 'product_id' => $item->product_id,
-                'ref_type' => 'sale',
-                'ref_id' => $sale->getKey(),
-                'qty' => -1 * abs((float) $item->qty),
+                'reference_type' => 'sale',
+                'reference_id' => $sale->getKey(),
+                'qty' => abs((float) $item->qty),
                 'direction' => 'out',
-                'note' => 'Sale completed',
+                'notes' => 'Sale completed',
                 'created_by' => $sale->created_by,
             ]);
         }

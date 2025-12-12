@@ -19,6 +19,25 @@ class SettingsService
 
     protected const CACHE_TTL = 3600;
 
+    /**
+     * Resolve a setting value, preserving full arrays while supporting legacy unwrapping
+     */
+    private function resolveValue(mixed $value, string $type = 'string'): mixed
+    {
+        // For non-arrays, return as-is
+        if (!is_array($value)) {
+            return $value;
+        }
+
+        // For array/json types, preserve the full array
+        if (in_array($type, ['array', 'json'])) {
+            return $value;
+        }
+
+        // For other types, unwrap single-value arrays (legacy behavior)
+        return count($value) === 1 ? $value[0] : $value;
+    }
+
     public function get(string $key, mixed $default = null): mixed
     {
         return $this->handleServiceOperation(
@@ -63,7 +82,7 @@ class SettingsService
                     }
                 }
 
-                return is_array($value) ? ($value[0] ?? $value) : $value;
+                return $this->resolveValue($value, $setting->type ?? 'string');
             },
             operation: 'getDecrypted',
             context: ['key' => $key],
@@ -127,14 +146,14 @@ class SettingsService
         return $this->handleServiceOperation(
             callback: function () {
                 return Cache::remember(self::CACHE_KEY, self::CACHE_TTL, function () {
-                    return SystemSetting::select('key', 'value', 'is_encrypted')
+                    return SystemSetting::select('key', 'value', 'is_encrypted', 'type')
                         ->get()
                         ->mapWithKeys(function (SystemSetting $setting): array {
-                            $value = is_array($setting->value) ? ($setting->value[0] ?? $setting->value) : $setting->value;
+                            $value = $this->resolveValue($setting->value, $setting->type ?? 'string');
 
                             if ($setting->is_encrypted && $value) {
                                 try {
-                                    $decrypted = Crypt::decryptString($value);
+                                    $decrypted = Crypt::decryptString(is_array($value) ? ($value[0] ?? '') : $value);
                                     $decoded = json_decode($decrypted, true);
 
                                     return [
@@ -180,7 +199,7 @@ class SettingsService
                             }
                         }
 
-                        return [$setting->key => is_array($value) ? ($value[0] ?? $value) : $value];
+                        return [$setting->key => $this->resolveValue($value, $setting->type ?? 'string')];
                     })
                     ->toArray();
             },

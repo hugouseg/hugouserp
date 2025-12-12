@@ -60,8 +60,8 @@ enum RentalContractStatus: string
     {
         return match ($this) {
             self::DRAFT => [self::ACTIVE],
-            self::ACTIVE => [self::SUSPENDED, self::TERMINATED],
-            self::SUSPENDED => [self::ACTIVE, self::TERMINATED],
+            self::ACTIVE => [self::SUSPENDED, self::TERMINATED, self::EXPIRED],
+            self::SUSPENDED => [self::ACTIVE, self::TERMINATED, self::EXPIRED],
             self::TERMINATED => [],
             self::EXPIRED => [],
         };

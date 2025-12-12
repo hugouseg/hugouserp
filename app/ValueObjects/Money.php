@@ -120,7 +120,7 @@ final class Money
     {
         if ($this->currency !== $other->currency) {
             throw new InvalidArgumentException(
-                "Cannot perform operation on different currencies: {$this->currency} and {$other->currency}"
+                "Cannot perform operation on different currencies"
             );
         }
     }

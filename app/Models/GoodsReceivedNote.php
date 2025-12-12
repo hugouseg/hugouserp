@@ -138,7 +138,7 @@ class GoodsReceivedNote extends BaseModel
 
     public function hasDiscrepancies(): bool
     {
-        return $this->items->some(function ($item) {
+        return $this->items->contains(function ($item) {
             return $item->qty_received != $item->qty_ordered || $item->qty_rejected > 0;
         });
     }

@@ -48,6 +48,10 @@ class ValidStockQuantity implements ValidationRule
 
         if ($this->decimalPlaces >= 0) {
             $decimalPattern = '/^\d+(\.\d{0,'.preg_quote((string) $this->decimalPlaces, '/').'})?$/';
+            if ($this->decimalPlaces === 0) {
+                // For zero decimal places, reject values with decimal separator
+                $decimalPattern = '/^\d+$/';
+            }
             if (! preg_match($decimalPattern, (string) $value)) {
                 $fail(__('validation.decimal', ['attribute' => $attribute, 'decimal' => $this->decimalPlaces]));
 

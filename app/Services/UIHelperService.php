@@ -189,7 +189,10 @@ class UIHelperService
             $i++;
         }
 
-        return round($value, $precision).' '.$units[$i];
+        // Format the value and remove trailing zeros
+        $formatted = rtrim(rtrim(number_format($value, $precision, '.', ''), '0'), '.');
+
+        return $formatted.' '.$units[$i];
     }
 
     /**
