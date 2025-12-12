@@ -4,6 +4,12 @@ namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Example unit test for money helper functions.
+ * 
+ * NOTE: This test does not use RefreshDatabase because it only tests
+ * helper functions and does not interact with the database or persist data.
+ */
 class ExampleTest extends TestCase
 {
     /**

@@ -19,6 +19,7 @@ class NotificationController extends Controller
 
         $rows = DB::table('notifications')
             ->where('notifiable_id', $user->getKey())
+            ->where('notifiable_type', get_class($user))
             ->orderByDesc('created_at')
             ->paginate($perPage);
 
@@ -30,6 +31,7 @@ class NotificationController extends Controller
         $user = $request->user();
         $count = DB::table('notifications')
             ->where('notifiable_id', $user->getKey())
+            ->where('notifiable_type', get_class($user))
             ->whereNull('read_at')
             ->count();
 
@@ -53,8 +55,13 @@ class NotificationController extends Controller
 
     public function markAll(Request $request)
     {
-        $userId = $request->user()->getKey();
-        $ids = DB::table('notifications')->where('notifiable_id', $userId)->pluck('id')->all();
+        $user = $request->user();
+        $userId = $user->getKey();
+        $ids = DB::table('notifications')
+            ->where('notifiable_id', $userId)
+            ->where('notifiable_type', get_class($user))
+            ->pluck('id')
+            ->all();
         $count = $this->notify->markManyRead($userId, $ids);
 
         return $this->ok(['updated' => $count], __('All notifications marked as read'));

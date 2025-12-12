@@ -25,23 +25,23 @@ Route::prefix('v1')->group(function () {
         Route::get('/diagnostics', [DiagnosticsController::class, 'index']);
     });
 
-    // Branch-scoped POS routes (for frontend POS terminal)
-    Route::prefix('branches/{branchId}')->middleware(['auth:sanctum', 'throttle:api'])->group(function () {
+    // Branch-scoped API routes with model binding and full middleware stack
+    Route::prefix('branches/{branch}')->middleware(['api-core', 'api-auth', 'api-branch'])->group(function () {
+        // Load all branch-specific route files
+        require __DIR__.'/api/branch/common.php';
+        require __DIR__.'/api/branch/hrm.php';
+        require __DIR__.'/api/branch/motorcycle.php';
+        require __DIR__.'/api/branch/rental.php';
+        require __DIR__.'/api/branch/spares.php';
+        require __DIR__.'/api/branch/wood.php';
+
+        // Authenticated POS session management routes (consolidated into branch scope)
         Route::prefix('pos')->group(function () {
-            Route::post('/checkout', [POSController::class, 'checkout']);
+            Route::get('/session', [POSController::class, 'getCurrentSession']);
+            Route::post('/session/open', [POSController::class, 'openSession']);
+            Route::post('/session/{sessionId}/close', [POSController::class, 'closeSession']);
+            Route::get('/session/{sessionId}/report', [POSController::class, 'getSessionReport']);
         });
-
-        Route::prefix('products')->group(function () {
-            Route::get('/search', [ProductsController::class, 'search']);
-        });
-    });
-
-    // Global POS session management routes
-    Route::prefix('pos')->middleware(['auth:sanctum', 'throttle:api'])->group(function () {
-        Route::get('/session', [POSController::class, 'getCurrentSession']);
-        Route::post('/session/open', [POSController::class, 'openSession']);
-        Route::post('/session/{sessionId}/close', [POSController::class, 'closeSession']);
-        Route::get('/session/{sessionId}/report', [POSController::class, 'getSessionReport']);
     });
 
     Route::middleware(['store.token', 'throttle:api'])->group(function () {
@@ -82,6 +82,21 @@ Route::prefix('v1')->group(function () {
     Route::prefix('webhooks')->group(function () {
         Route::post('/shopify/{storeId}', [WebhooksController::class, 'handleShopify'])->name('webhooks.shopify');
         Route::post('/woocommerce/{storeId}', [WebhooksController::class, 'handleWooCommerce'])->name('webhooks.woocommerce');
+    });
+
+    // Auth routes (public routes + authenticated routes)
+    Route::middleware(['api-core'])->group(function () {
+        require __DIR__.'/api/auth.php';
+    });
+
+    // Notifications routes (requires api-core + api-auth)
+    Route::middleware(['api-core', 'api-auth', 'impersonate'])->group(function () {
+        require __DIR__.'/api/notifications.php';
+    });
+
+    // Admin routes (requires api-core + api-auth + impersonate)
+    Route::middleware(['api-core', 'api-auth', 'impersonate'])->group(function () {
+        require __DIR__.'/api/admin.php';
     });
 
 });
