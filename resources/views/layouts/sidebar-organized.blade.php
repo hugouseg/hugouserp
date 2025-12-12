@@ -164,7 +164,7 @@
             
             @if($canAccess('warehouse.view'))
             <a href="{{ route('app.warehouse.index') }}"
-               class="sidebar-link-secondary {{ $isActive('warehouse') ? 'active' : '' }}">
+               class="sidebar-link-secondary {{ $isActive('app.warehouse') ? 'active' : '' }}">
                 <span class="text-base">🏭</span>
                 <span class="text-sm">{{ __('Warehouses') }}</span>
             </a>
