@@ -481,11 +481,11 @@ class DashboardService
         }
 
         return [
-            'open' => $query->clone()->where('status', 'open')->count(),
-            'in_progress' => $query->clone()->where('status', 'in_progress')->count(),
-            'on_hold' => $query->clone()->where('status', 'on_hold')->count(),
-            'resolved' => $query->clone()->where('status', 'resolved')->count(),
-            'overdue' => $query->clone()->where('status', 'open')->where('due_date', '<', now())->count(),
+            'open' => (clone $query)->where('status', 'open')->count(),
+            'in_progress' => (clone $query)->where('status', 'in_progress')->count(),
+            'on_hold' => (clone $query)->where('status', 'on_hold')->count(),
+            'resolved' => (clone $query)->where('status', 'resolved')->count(),
+            'overdue' => (clone $query)->where('status', 'open')->where('due_date', '<', now())->count(),
         ];
     }
 
@@ -508,10 +508,10 @@ class DashboardService
         $totalEmployees = $total->count();
 
         return [
-            'present' => $query->clone()->where('status', 'present')->count(),
-            'absent' => $query->clone()->where('status', 'absent')->count(),
-            'late' => $query->clone()->where('is_late', true)->count(),
-            'on_leave' => $query->clone()->where('status', 'leave')->count(),
+            'present' => (clone $query)->where('status', 'present')->count(),
+            'absent' => (clone $query)->where('status', 'absent')->count(),
+            'late' => (clone $query)->where('is_late', true)->count(),
+            'on_leave' => (clone $query)->where('status', 'leave')->count(),
             'total_employees' => $totalEmployees,
         ];
     }

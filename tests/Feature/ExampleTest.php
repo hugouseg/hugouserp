@@ -22,15 +22,17 @@ class ExampleTest extends TestCase
 
         // Expect redirect to login for unauthenticated users
         $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
+        $response->assertRedirectToRoute('login');
 
-        // Follow the redirect and assert the login page is rendered
-        $loginResponse = $this->followingRedirects()->get('/');
-        
+        // Follow the redirect to the login page and assert the login form fields are present
+        $loginResponse = $this->get($response->headers->get('Location'));
+
         // Assert the login page content is rendered
         $loginResponse->assertStatus(200);
-        $loginResponse->assertSee('login', false);
-        
+        $loginResponse->assertSee('name="email"', false);
+        $loginResponse->assertSee('name="password"', false);
+        $loginResponse->assertSee('type="submit"', false);
+
         // Confirm the guard remains unauthenticated after following redirect
         $this->assertGuest();
     }

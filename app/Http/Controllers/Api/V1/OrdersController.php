@@ -89,14 +89,26 @@ class OrdersController extends BaseApiController
                 $customerId = $validated['customer_id'] ?? null;
 
                 if (! $customerId && isset($validated['customer'])) {
-                    $customer = Customer::firstOrCreate(
-                        ['email' => $validated['customer']['email'] ?? null],
-                        [
-                            'name' => $validated['customer']['name'],
-                            'phone' => $validated['customer']['phone'] ?? null,
+                    $customerData = $validated['customer'];
+
+                    $customer = Customer::query()
+                        ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
+                        ->when(! empty($customerData['email']), fn ($q) => $q->where('email', $customerData['email']))
+                        ->when(
+                            empty($customerData['email']) && ! empty($customerData['phone']),
+                            fn ($q) => $q->where('phone', $customerData['phone'])
+                        )
+                        ->first();
+
+                    if (! $customer) {
+                        $customer = Customer::create([
+                            'name' => $customerData['name'],
+                            'email' => $customerData['email'] ?? null,
+                            'phone' => $customerData['phone'] ?? null,
                             'branch_id' => $store?->branch_id,
-                        ]
-                    );
+                        ]);
+                    }
+
                     $customerId = $customer->id;
                 }
 

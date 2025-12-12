@@ -14,6 +14,7 @@ class Customer extends BaseModel
     protected $fillable = [
         'uuid', 'code', 'name', 'email', 'phone', 'tax_number',
         'billing_address', 'shipping_address', 'price_group_id',
+        'address', 'city', 'country', 'company', 'external_id',
         'status', 'notes', 'loyalty_points', 'customer_tier', 'tier_updated_at',
         'extra_attributes', 'branch_id', 'created_by', 'updated_by',
     ];

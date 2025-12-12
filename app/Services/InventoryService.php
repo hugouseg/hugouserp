@@ -68,6 +68,10 @@ class InventoryService implements InventoryServiceInterface
                     throw new InvalidQuantityException('Branch context is required for inventory adjustments.', 422);
                 }
 
+                if ($warehouseId === null) {
+                    throw new InvalidQuantityException('Warehouse is required for inventory adjustments.', 422);
+                }
+
                 // Check if product is a service type
                 $product = Product::findOrFail($productId);
                 if ($product->type === 'service' || $product->product_type === 'service') {
@@ -89,7 +93,7 @@ class InventoryService implements InventoryServiceInterface
 
                 $validator = $this->validator->make($data, [
                     'product_id' => ['required', 'integer', 'exists:products,id'],
-                    'warehouse_id' => ['nullable', 'integer', 'exists:warehouses,id'],
+                    'warehouse_id' => ['required', 'integer', 'exists:warehouses,id'],
                     'qty' => ['required', 'numeric'],
                     'direction' => ['required', 'in:in,out'],
                 ]);

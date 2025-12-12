@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Services\POSService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class POSController extends Controller
 {
@@ -19,6 +21,8 @@ class POSController extends Controller
     public function checkout(Request $request, ?int $branchId = null): JsonResponse
     {
         $this->authorize('pos.use');
+
+        $branch = null;
 
         // Use branchId from route if provided, otherwise require it in request
         $validationRules = [
@@ -40,15 +44,37 @@ class POSController extends Controller
         // If branchId not in route, require it in request body
         if (! $branchId) {
             $validationRules['branch_id'] = 'required|integer|exists:branches,id';
+        } else {
+            $branch = Branch::query()
+                ->whereKey($branchId)
+                ->where('is_active', true)
+                ->first();
+
+            if (! $branch) {
+                throw ValidationException::withMessages([
+                    'branch_id' => [__('The selected branch is invalid or inactive.')],
+                ]);
+            }
         }
 
         $request->validate($validationRules);
 
+        if (! $branch) {
+            $branch = Branch::query()
+                ->whereKey($request->integer('branch_id'))
+                ->where('is_active', true)
+                ->first();
+
+            if (! $branch) {
+                throw ValidationException::withMessages([
+                    'branch_id' => [__('The selected branch is invalid or inactive.')],
+                ]);
+            }
+        }
+
         // Merge branchId into request data
         $checkoutData = $request->all();
-        if ($branchId) {
-            $checkoutData['branch_id'] = $branchId;
-        }
+        $checkoutData['branch_id'] = $branch->id;
 
         try {
             $sale = $this->posService->checkout($checkoutData);

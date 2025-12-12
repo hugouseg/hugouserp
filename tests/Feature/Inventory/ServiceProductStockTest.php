@@ -93,4 +93,23 @@ class ServiceProductStockTest extends TestCase
         $this->assertInstanceOf(\App\Models\StockMovement::class, $result);
         $this->assertEquals(10, $result->qty);
     }
+
+    public function test_adjustment_requires_a_warehouse(): void
+    {
+        $physicalProduct = Product::create([
+            'name' => 'Physical Product',
+            'code' => 'PHY002',
+            'sku' => 'PHY-SKU002',
+            'type' => 'product',
+            'product_type' => 'physical',
+            'default_price' => 50,
+            'standard_cost' => 25,
+            'branch_id' => $this->branch->id,
+        ]);
+
+        $this->expectException(InvalidQuantityException::class);
+        $this->expectExceptionMessage('Warehouse is required for inventory adjustments.');
+
+        $this->service->adjust($physicalProduct->id, 5, null, 'Missing warehouse');
+    }
 }
