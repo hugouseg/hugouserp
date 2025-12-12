@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Date;
 
 class CurrencyRate extends Model
 {
@@ -59,17 +60,22 @@ class CurrencyRate extends Model
             return 1.0;
         }
 
-        $dateKey = $date ? (is_string($date) ? $date : $date->format('Y-m-d')) : 'latest';
+        $dateObject = null;
+        if ($date !== null) {
+            $dateObject = Date::parse($date);
+        }
+
+        $dateKey = $dateObject ? $dateObject->format('Y-m-d') : 'latest';
         $cacheKey = sprintf('currency_rate:%s:%s:%s', $from, $to, $dateKey);
 
-        return Cache::remember($cacheKey, 300, function () use ($from, $to, $date) {
+        return Cache::remember($cacheKey, 300, function () use ($from, $to, $dateObject) {
             $query = static::query()
                 ->where('from_currency', $from)
                 ->where('to_currency', $to)
                 ->where('is_active', true);
 
-            if ($date) {
-                $query->whereDate('effective_date', '<=', is_string($date) ? $date : $date->format('Y-m-d'));
+            if ($dateObject) {
+                $query->whereDate('effective_date', '<=', $dateObject->format('Y-m-d'));
             }
 
             $rate = $query->orderByDesc('effective_date')->first();

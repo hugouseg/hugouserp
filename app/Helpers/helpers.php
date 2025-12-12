@@ -87,7 +87,7 @@ if (! function_exists('sanitize_svg_icon')) {
         $allowedTags = [
             'svg', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon',
             'ellipse', 'g', 'defs', 'symbol', 'title', 'desc',
-            'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask',
+            'lineargradient', 'radialgradient', 'stop', 'clippath', 'mask',
         ];
 
         // Define allowed attributes (strict subset - no event handlers, no href for safety)

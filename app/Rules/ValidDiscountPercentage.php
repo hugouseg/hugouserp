@@ -46,7 +46,7 @@ class ValidDiscountPercentage implements ValidationRule
                 $decimalPattern = '/^\d+$/';
             } else {
                 // Require at least 1 digit after decimal point when decimal is present
-                $decimalPattern = '/^\d+(\.\d{1,'.preg_quote((string) $this->decimalPlaces, '/').'})?$/';
+                $decimalPattern = '/^\d+(\.\d{1,'.((int) $this->decimalPlaces).'})?$/';
             }
             if (! preg_match($decimalPattern, (string) $value)) {
                 $fail(__('validation.decimal', ['attribute' => $attribute, 'decimal' => $this->decimalPlaces]));

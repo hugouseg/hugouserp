@@ -192,14 +192,12 @@ class SettingsService
                         if ($setting->is_encrypted && $value) {
                             try {
                                 $decrypted = Crypt::decryptString(is_array($value) ? ($value[0] ?? '') : $value);
-                                
-                                // Attempt to decode JSON - if it's a valid array, return it as such
+
                                 $decoded = json_decode($decrypted, true);
-                                if (json_last_error() === JSON_ERROR_NONE) {
-                                    return [$setting->key => $decoded];
-                                }
-                                
-                                return [$setting->key => $decrypted];
+
+                                return [
+                                    $setting->key => json_last_error() === JSON_ERROR_NONE ? $decoded : $decrypted,
+                                ];
                             } catch (\Exception $e) {
                                 return [$setting->key => null];
                             }
@@ -224,24 +222,21 @@ class SettingsService
                     ->get()
                     ->mapWithKeys(function ($setting) {
                         $value = $setting->value;
-                        
+
                         if ($setting->is_encrypted && $value) {
                             try {
                                 $decrypted = Crypt::decryptString(is_array($value) ? ($value[0] ?? '') : $value);
-                                
-                                // Attempt to decode JSON - if it's a valid array, return it as such
                                 $decoded = json_decode($decrypted, true);
-                                if (json_last_error() === JSON_ERROR_NONE) {
-                                    return [$setting->key => $decoded];
-                                }
-                                
-                                return [$setting->key => $decrypted];
+
+                                return [
+                                    $setting->key => json_last_error() === JSON_ERROR_NONE ? $decoded : $decrypted,
+                                ];
                             } catch (\Exception $e) {
                                 Log::warning('Failed to decrypt category setting', [
                                     'key' => $setting->key,
                                     'error' => $e->getMessage(),
                                 ]);
-                                
+
                                 return [$setting->key => null];
                             }
                         }

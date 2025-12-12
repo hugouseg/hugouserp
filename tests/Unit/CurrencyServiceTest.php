@@ -34,4 +34,20 @@ class CurrencyServiceTest extends TestCase
 
         $this->assertSame(1.1, $this->service->getRate('USD', 'EUR', $date));
     }
+
+    /** @test */
+    public function it_normalizes_date_inputs_for_rate_cache_keys(): void
+    {
+        $date = now()->toDateString();
+        $datetime = $date.' 15:30:00';
+
+        // Prime the cache using a datetime string
+        $this->service->setRate('USD', 'GBP', 0.8, $date);
+        $this->assertSame(0.8, $this->service->getRate('USD', 'GBP', $datetime));
+
+        // Update the rate for the same calendar day; cache should be cleared for normalized key
+        $this->service->setRate('USD', 'GBP', 0.85, $date);
+
+        $this->assertSame(0.85, $this->service->getRate('USD', 'GBP', $datetime));
+    }
 }

@@ -71,6 +71,8 @@ class UIHelperService
      */
     public function formatCurrency(float $amount, string $currency = 'USD', bool $showSymbol = true): string
     {
+        $currency = strtoupper($currency);
+
         $symbols = [
             'USD' => '$',
             'EUR' => '€',

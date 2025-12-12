@@ -53,6 +53,16 @@ class UIHelperServiceTest extends TestCase
     }
 
     /** @test */
+    public function it_formats_currency_case_insensitively(): void
+    {
+        $formatted = $this->service->formatCurrency(1234.56, 'usd');
+        $this->assertEquals('$ 1,234.56', $formatted);
+
+        $formattedRtl = $this->service->formatCurrency(1234.56, 'egp');
+        $this->assertEquals('1,234.56 ج.م', $formattedRtl);
+    }
+
+    /** @test */
     public function it_formats_currency_without_symbol(): void
     {
         $formatted = $this->service->formatCurrency(1234.56, 'USD', showSymbol: false);

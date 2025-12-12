@@ -131,7 +131,9 @@ class CurrencyService
     {
         return $this->handleServiceOperation(
             callback: function () use ($from, $to, $rate, $effectiveDate) {
-                $effectiveDate = $effectiveDate ?? now()->toDateString();
+                $effectiveDateObject = $effectiveDate
+                    ? \Carbon\Carbon::parse($effectiveDate)->startOfDay()
+                    : now()->startOfDay();
                 $from = strtoupper($from);
                 $to = strtoupper($to);
 
@@ -139,7 +141,7 @@ class CurrencyService
                     [
                         'from_currency' => $from,
                         'to_currency' => $to,
-                        'effective_date' => $effectiveDate,
+                        'effective_date' => $effectiveDateObject,
                     ],
                     [
                         'rate' => $rate,
@@ -153,7 +155,7 @@ class CurrencyService
                     $currencyRate->save();
                 }
 
-                $this->clearRateCache($from, $to, $effectiveDate);
+                $this->clearRateCache($from, $to, $effectiveDateObject->format('Y-m-d'));
 
                 return $currencyRate;
             },
