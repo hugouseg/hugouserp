@@ -85,7 +85,7 @@
                 @forelse($recentTickets as $ticket)
                     <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100">
                         <div class="flex-1">
-                            <a href="{{ route('helpdesk.show', $ticket->id) }}" class="font-medium text-slate-900 hover:text-blue-600">
+                            <a href="{{ route('app.helpdesk.tickets.show', $ticket->id) }}" class="font-medium text-slate-900 hover:text-blue-600">
                                 {{ $ticket->ticket_number }}
                             </a>
                             <p class="text-sm text-slate-600 truncate">{{ Str::limit($ticket->subject, 40) }}</p>
@@ -111,7 +111,7 @@
                 @forelse($overdueTickets as $ticket)
                     <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg hover:bg-red-100">
                         <div class="flex-1">
-                            <a href="{{ route('helpdesk.show', $ticket->id) }}" class="font-medium text-slate-900 hover:text-blue-600">
+                            <a href="{{ route('app.helpdesk.tickets.show', $ticket->id) }}" class="font-medium text-slate-900 hover:text-blue-600">
                                 {{ $ticket->ticket_number }}
                             </a>
                             <p class="text-sm text-slate-600 truncate">{{ Str::limit($ticket->subject, 40) }}</p>
@@ -137,7 +137,7 @@
             @forelse($unassignedTickets as $ticket)
                 <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100">
                     <div class="flex-1">
-                        <a href="{{ route('helpdesk.show', $ticket->id) }}" class="font-medium text-slate-900 hover:text-blue-600">
+                        <a href="{{ route('app.helpdesk.tickets.show', $ticket->id) }}" class="font-medium text-slate-900 hover:text-blue-600">
                             {{ $ticket->ticket_number }}
                         </a>
                         <p class="text-sm text-slate-600">{{ Str::limit($ticket->subject, 60) }}</p>
