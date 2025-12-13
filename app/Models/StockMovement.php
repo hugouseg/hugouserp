@@ -19,6 +19,7 @@ class StockMovement extends BaseModel
         'reference_type', 'reference_id',
         'batch_no', 'serial_no', 'expires_at',
         'status', 'notes', 'extra_attributes', 'created_by', 'updated_by',
+        'quantity', 'type', // Legacy attribute support
     ];
 
     protected $casts = [
