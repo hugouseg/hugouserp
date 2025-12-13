@@ -43,7 +43,7 @@ return new class extends Migration
         }
 
         // Fix 2: suppliers - Remove incorrect status index
-        // Note: The correct index will be added by the performance indexes migration
+        // Note: The correct index will be added by 2025_12_10_180000_add_performance_indexes_to_tables.php migration
         if (Schema::hasTable('suppliers')) {
             Schema::table('suppliers', function (Blueprint $table) {
                 // Drop incorrect status index if it exists
@@ -118,7 +118,7 @@ return new class extends Migration
             });
         }
 
-        // Note: suppliers index is managed by the performance indexes migration
+        // Note: suppliers_active_branch_idx index is managed by 2025_12_10_180000_add_performance_indexes_to_tables.php migration
 
         // Revert rental_invoices fixes
         if (Schema::hasTable('rental_invoices')) {
