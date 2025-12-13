@@ -8,16 +8,36 @@ use App\Models\ReturnNote;
 use App\Models\Sale;
 use App\Services\Contracts\SaleServiceInterface;
 use App\Traits\HandlesServiceErrors;
+use App\Traits\HasRequestContext;
 use Illuminate\Support\Facades\DB;
 
 class SaleService implements SaleServiceInterface
 {
     use HandlesServiceErrors;
+    use HasRequestContext;
+
+    protected function branchIdOrFail(): int
+    {
+        $branchId = $this->currentBranchId();
+
+        if ($branchId === null) {
+            throw new \InvalidArgumentException('Branch context is required for sale operations.');
+        }
+
+        return $branchId;
+    }
+
+    protected function findBranchSaleOrFail(int $id): Sale
+    {
+        $branchId = $this->branchIdOrFail();
+
+        return Sale::where('branch_id', $branchId)->findOrFail($id);
+    }
 
     public function show(int $id): Sale
     {
         return $this->handleServiceOperation(
-            callback: fn () => Sale::with('items')->findOrFail($id),
+            callback: fn () => $this->findBranchSaleOrFail($id)->load('items'),
             operation: 'show',
             context: ['sale_id' => $id]
         );
@@ -28,7 +48,7 @@ class SaleService implements SaleServiceInterface
     {
         return $this->handleServiceOperation(
             callback: function () use ($saleId, $items, $reason) {
-                $sale = Sale::with('items')->findOrFail($saleId);
+                $sale = $this->findBranchSaleOrFail($saleId)->load('items');
 
                 return DB::transaction(function () use ($sale, $items, $reason) {
                     $note = ReturnNote::create([
@@ -69,7 +89,7 @@ class SaleService implements SaleServiceInterface
     {
         return $this->handleServiceOperation(
             callback: function () use ($saleId, $reason) {
-                $sale = Sale::findOrFail($saleId);
+                $sale = $this->findBranchSaleOrFail($saleId);
                 $sale->status = 'void';
                 $sale->notes = trim(($sale->notes ?? '')."\nVOID: ".$reason);
                 $sale->save();
@@ -91,7 +111,7 @@ class SaleService implements SaleServiceInterface
     {
         return $this->handleServiceOperation(
             callback: function () use ($saleId) {
-                $sale = Sale::with('items')->findOrFail($saleId);
+                $sale = $this->findBranchSaleOrFail($saleId)->load('items');
                 $printer = app(PrintingService::class);
 
                 return $printer->renderPdfOrHtml('prints.sale', ['sale' => $sale], 'sale_'.$sale->id);

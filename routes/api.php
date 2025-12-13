@@ -28,6 +28,7 @@ Route::prefix('v1')->group(function () {
     // Branch-scoped API routes with model binding and full middleware stack
     Route::prefix('branches/{branch}')
         ->middleware(['api-core', 'api-auth', 'api-branch', 'throttle:120,1'])
+        ->scopeBindings()
         ->group(function () {
         // Load all branch-specific route files
         require __DIR__.'/api/branch/common.php';

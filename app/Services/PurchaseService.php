@@ -8,18 +8,39 @@ use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Services\Contracts\PurchaseServiceInterface;
 use App\Traits\HandlesServiceErrors;
+use App\Traits\HasRequestContext;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseService implements PurchaseServiceInterface
 {
     use HandlesServiceErrors;
+    use HasRequestContext;
+
+    protected function branchIdOrFail(): int
+    {
+        $branchId = $this->currentBranchId();
+
+        if ($branchId === null) {
+            throw new \InvalidArgumentException('Branch context is required for purchase operations.');
+        }
+
+        return $branchId;
+    }
+
+    protected function findBranchPurchaseOrFail(int $id): Purchase
+    {
+        $branchId = $this->branchIdOrFail();
+
+        return Purchase::where('branch_id', $branchId)->findOrFail($id);
+    }
 
     public function create(array $payload): Purchase
     {
         return $this->handleServiceOperation(
             callback: fn () => DB::transaction(function () use ($payload) {
+                $branchId = $this->branchIdOrFail();
                 $p = Purchase::create([
-                    'branch_id' => request()->attributes->get('branch_id'),
+                    'branch_id' => $payload['branch_id'] ?? $branchId,
                     'warehouse_id' => $payload['warehouse_id'] ?? null,
                     'supplier_id' => $payload['supplier_id'] ?? null,
                     'status' => 'draft',
@@ -51,7 +72,7 @@ class PurchaseService implements PurchaseServiceInterface
     {
         return $this->handleServiceOperation(
             callback: function () use ($id) {
-                $p = Purchase::findOrFail($id);
+                $p = $this->findBranchPurchaseOrFail($id);
                 $p->status = 'approved';
                 $p->approved_at = now();
                 $p->save();
@@ -67,7 +88,7 @@ class PurchaseService implements PurchaseServiceInterface
     {
         return $this->handleServiceOperation(
             callback: function () use ($id) {
-                $p = Purchase::findOrFail($id);
+                $p = $this->findBranchPurchaseOrFail($id);
                 $p->status = 'received';
                 $p->received_at = now();
                 $p->save();
@@ -84,7 +105,7 @@ class PurchaseService implements PurchaseServiceInterface
     {
         return $this->handleServiceOperation(
             callback: function () use ($id, $amount) {
-                $p = Purchase::findOrFail($id);
+                $p = $this->findBranchPurchaseOrFail($id);
                 $p->paid_total = round((float) $p->paid_total + $amount, 2);
                 $p->due_total = round(max(0, $p->grand_total - $p->paid_total), 2);
                 if ($p->paid_total >= $p->grand_total) {
@@ -103,7 +124,7 @@ class PurchaseService implements PurchaseServiceInterface
     {
         return $this->handleServiceOperation(
             callback: function () use ($id) {
-                $p = Purchase::findOrFail($id);
+                $p = $this->findBranchPurchaseOrFail($id);
                 $p->status = 'cancelled';
                 $p->save();
 

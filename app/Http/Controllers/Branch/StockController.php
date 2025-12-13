@@ -14,8 +14,18 @@ class StockController extends Controller
 {
     public function __construct(protected Inventory $inv) {}
 
+    protected function requireBranchId(Request $request): int
+    {
+        $branchId = $request->attributes->get('branch_id');
+
+        abort_if($branchId === null, 400, __('Branch context is required.'));
+
+        return (int) $branchId;
+    }
+
     public function current(Request $request)
     {
+        $this->requireBranchId($request);
         $pid = (int) $request->integer('product_id');
         $wid = $request->integer('warehouse_id') ?: null;
         $qty = $this->inv->currentQty($pid, $wid);
@@ -25,6 +35,7 @@ class StockController extends Controller
 
     public function adjust(StockAdjustRequest $request)
     {
+        $this->requireBranchId($request);
         $data = $request->validated();
         $m = $this->inv->adjust($data['product_id'], (float) $data['qty'], $data['warehouse_id'] ?? null, $data['note'] ?? null);
 
@@ -33,6 +44,7 @@ class StockController extends Controller
 
     public function transfer(StockTransferRequest $request)
     {
+        $this->requireBranchId($request);
         $data = $request->validated();
         $res = $this->inv->transfer($data['product_id'], (float) $data['qty'], $data['from_warehouse'], $data['to_warehouse']);
 

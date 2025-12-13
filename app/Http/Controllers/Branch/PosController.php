@@ -15,9 +15,21 @@ class PosController extends Controller
 {
     public function __construct(protected POS $pos) {}
 
+    protected function requireBranchId(Request $request): int
+    {
+        $branchId = $request->attributes->get('branch_id');
+
+        abort_if($branchId === null, 400, __('Branch context is required.'));
+
+        return (int) $branchId;
+    }
+
     public function checkout(PosCheckoutRequest $request)
     {
-        $sale = $this->pos->checkout($request->validated());
+        $payload = $request->validated();
+        $payload['branch_id'] = $this->requireBranchId($request);
+
+        $sale = $this->pos->checkout($payload);
 
         return $this->ok($sale->load('items'), __('Checkout completed'));
     }
@@ -25,7 +37,7 @@ class PosController extends Controller
     public function hold(Request $request)
     {
         $data = $this->validate($request, ['items' => ['required', 'array', 'min:1'], 'note' => ['nullable', 'string', 'max:255']]);
-        $branch = (int) $request->attributes->get('branch_id');
+        $branch = $this->requireBranchId($request);
         $id = Str::ulid()->toBase32();
         Cache::put("pos:hold:{$branch}:{$id}", ['items' => $data['items'], 'note' => $data['note'] ?? null, 'user_id' => $request->user()->getKey()], now()->addHours(12));
 
@@ -35,7 +47,7 @@ class PosController extends Controller
     public function resume(Request $request)
     {
         $this->validate($request, ['hold_id' => ['required', 'string']]);
-        $branch = (int) $request->attributes->get('branch_id');
+        $branch = $this->requireBranchId($request);
         $data = Cache::pull("pos:hold:{$branch}:".$request->input('hold_id'));
         if (! $data) {
             return $this->fail(__('Hold not found'), 404);
@@ -50,18 +62,21 @@ class PosController extends Controller
         return $this->ok(['status' => 'closed', 'at' => now()->toDateTimeString()], __('Closed'));
     }
 
-    public function reprint(int $sale)
+    public function reprint(Request $request, int $sale)
     {
+        $this->requireBranchId($request);
         return $this->ok(app(\App\Services\Contracts\SaleServiceInterface::class)->printInvoice($sale));
     }
 
-    public function xReport()
+    public function xReport(Request $request)
     {
+        $this->requireBranchId($request);
         return $this->ok(['report' => 'X']);
     }
 
-    public function zReport()
+    public function zReport(Request $request)
     {
+        $this->requireBranchId($request);
         return $this->ok(['report' => 'Z']);
     }
 }

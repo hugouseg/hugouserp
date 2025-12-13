@@ -15,10 +15,28 @@ class SaleController extends Controller
 {
     public function __construct(protected Sales $sales) {}
 
+    protected function requireBranchId(Request $request): int
+    {
+        $branchId = $request->attributes->get('branch_id');
+
+        abort_if($branchId === null, 400, __('Branch context is required.'));
+
+        return (int) $branchId;
+    }
+
+    protected function assertBranch(Sale $sale, int $branchId): void
+    {
+        abort_if($sale->branch_id !== $branchId, 404);
+    }
+
     public function index(Request $request)
     {
         $per = min(max($request->integer('per_page', 20), 1), 100);
-        $rows = Sale::query()->orderByDesc('id')->paginate($per);
+        $branchId = $this->requireBranchId($request);
+        $rows = Sale::query()
+            ->where('branch_id', $branchId)
+            ->orderByDesc('id')
+            ->paginate($per);
 
         return $this->ok($rows);
     }
@@ -28,13 +46,16 @@ class SaleController extends Controller
         return $this->ok([], __('Use POS /checkout'));
     }
 
-    public function show(Sale $sale)
+    public function show(Request $request, Sale $sale)
     {
+        $this->assertBranch($sale, $this->requireBranchId($request));
+
         return $this->ok($sale->load('items'));
     }
 
     public function update(Request $request, Sale $sale)
     {
+        $this->assertBranch($sale, $this->requireBranchId($request));
         $sale->fill($request->only(['notes']))->save();
 
         return $this->ok($sale);
@@ -43,17 +64,20 @@ class SaleController extends Controller
     public function handleReturn(SaleReturnRequest $request, int $sale)
     {
         $data = $request->validated();
+        $this->requireBranchId($request);
 
         return $this->ok($this->sales->handleReturn($sale, $data['items'], $request->input('reason')), __('Return processed'));
     }
 
     public function voidSale(SaleVoidRequest $request, int $sale)
     {
+        $this->requireBranchId($request);
         return $this->ok($this->sales->voidSale($sale, $request->input('reason')), __('Voided'));
     }
 
-    public function printInvoice(int $sale)
+    public function printInvoice(Request $request, int $sale)
     {
+        $this->requireBranchId($request);
         return $this->ok($this->sales->printInvoice($sale));
     }
 }

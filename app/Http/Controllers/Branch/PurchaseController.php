@@ -20,28 +20,52 @@ class PurchaseController extends Controller
 {
     public function __construct(protected Purchases $purchases) {}
 
+    protected function requireBranchId(Request $request): int
+    {
+        $branchId = $request->attributes->get('branch_id');
+
+        abort_if($branchId === null, 400, __('Branch context is required.'));
+
+        return (int) $branchId;
+    }
+
+    protected function assertBranch(Purchase $purchase, int $branchId): void
+    {
+        abort_if($purchase->branch_id !== $branchId, 404);
+    }
+
     public function index(Request $request)
     {
         $per = min(max($request->integer('per_page', 20), 1), 100);
-        $rows = Purchase::query()->orderByDesc('id')->paginate($per);
+        $branchId = $this->requireBranchId($request);
+        $rows = Purchase::query()
+            ->where('branch_id', $branchId)
+            ->orderByDesc('id')
+            ->paginate($per);
 
         return $this->ok($rows);
     }
 
     public function store(PurchaseStoreRequest $request)
     {
-        $p = $this->purchases->create($request->validated());
+        $payload = $request->validated();
+        $payload['branch_id'] = $this->requireBranchId($request);
+
+        $p = $this->purchases->create($payload);
 
         return $this->ok($p, __('Created'), 201);
     }
 
-    public function show(Purchase $purchase)
+    public function show(Request $request, Purchase $purchase)
     {
+        $this->assertBranch($purchase, $this->requireBranchId($request));
+
         return $this->ok($purchase->load('items'));
     }
 
     public function update(PurchaseUpdateRequest $request, Purchase $purchase)
     {
+        $this->assertBranch($purchase, $this->requireBranchId($request));
         $purchase->fill($request->validated())->save();
 
         return $this->ok($purchase);
@@ -49,29 +73,37 @@ class PurchaseController extends Controller
 
     public function approve(PurchaseApproveRequest $request, int $purchase)
     {
+        $this->requireBranchId($request);
+
         return $this->ok($this->purchases->approve($purchase), __('Approved'));
     }
 
     public function receive(PurchaseReceiveRequest $request, int $purchase)
     {
+        $this->requireBranchId($request);
+
         return $this->ok($this->purchases->receive($purchase), __('Received'));
     }
 
     public function pay(PurchasePayRequest $request, int $purchase)
     {
         $data = $request->validated();
+        $this->requireBranchId($request);
 
         return $this->ok($this->purchases->pay($purchase, (float) $data['amount']), __('Paid'));
     }
 
     public function handleReturn(PurchaseReturnRequest $request, int $purchase)
     {
+        $this->requireBranchId($request);
         // No payload yet, but request handles authorization
         return $this->ok(['purchase_id' => $purchase], __('Return handled'));
     }
 
     public function cancel(PurchaseCancelRequest $request, int $purchase)
     {
+        $this->requireBranchId($request);
+
         return $this->ok($this->purchases->cancel($purchase), __('Cancelled'));
     }
 }
